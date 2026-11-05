@@ -1,0 +1,12 @@
+{
+  "name": "photo-to-chess",
+  "private": true,
+  "license": "AGPL-3.0-or-later",
+  "packageManager": "pnpm@11.21.0",
+  "scripts": {
+    "setup:python": "node scripts/setup-python.mjs",
+    "contract:generate": "node scripts/generate-contract.mjs",
+    "verify": "node scripts/verify.mjs",
+    "eval": "node scripts/run-python.mjs -m ptc_eval"
+  }
+}

@@ -1,0 +1,17 @@
+[build-system]
+requires = ["setuptools>=77"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ptc-vision"
+version = "0.1.0"
+description = "Photo to Chess recognition service"
+license = "AGPL-3.0-or-later"
+requires-python = ">=3.12"
+dependencies = ["pydantic>=2.14,<3"]
+
+[project.optional-dependencies]
+dev = ["pytest>=9,<10", "ruff>=0.17,<0.18"]
+
+[tool.setuptools.packages.find]
+where = ["src"]

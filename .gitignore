@@ -1,0 +1,34 @@
+# Dependencies and environments
+node_modules/
+.venv/
+__pycache__/
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+
+# Build output
+dist/
+build/
+*.tsbuildinfo
+
+# Evaluation output
+reports/
+
+# Test images are never committed: they are large and carry their own licences.
+# Only the guide and the example manifest are tracked.
+corpus/*
+!corpus/README.md
+!corpus/example/
+corpus/example/*
+!corpus/example/manifest.example.jsonl
+
+# Model weights are distributed separately from the source tree
+*.onnx
+*.pt
+*.pth
+
+# OS and editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

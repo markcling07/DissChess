@@ -1,0 +1,14 @@
+# Shared tool configuration only. The installable Python projects are
+# services/vision (deployed) and ml (never deployed).
+
+[tool.pytest.ini_options]
+testpaths = ["services/vision/tests", "ml/tests"]
+pythonpath = ["ml/tests"]
+addopts = "--import-mode=importlib"
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]

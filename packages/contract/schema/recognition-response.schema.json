@@ -1,0 +1,426 @@
+{
+  "$defs": {
+    "BoardLocation": {
+      "additionalProperties": false,
+      "properties": {
+        "confidence": {
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Confidence",
+          "type": "number"
+        },
+        "corners": {
+          "description": "The four board corners, clockwise from the top left as seen in the image.",
+          "items": {
+            "$ref": "#/$defs/Point"
+          },
+          "maxItems": 4,
+          "minItems": 4,
+          "title": "Corners",
+          "type": "array"
+        }
+      },
+      "required": [
+        "corners",
+        "confidence"
+      ],
+      "title": "BoardLocation",
+      "type": "object"
+    },
+    "EngineInfo": {
+      "additionalProperties": false,
+      "description": "Identifies the recognition engine, so results can be traced to a model version.",
+      "properties": {
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "version": {
+          "title": "Version",
+          "type": "string"
+        }
+      },
+      "required": [
+        "name",
+        "version"
+      ],
+      "title": "EngineInfo",
+      "type": "object"
+    },
+    "LabelProbability": {
+      "additionalProperties": false,
+      "properties": {
+        "label": {
+          "enum": [
+            "empty",
+            "P",
+            "N",
+            "B",
+            "R",
+            "Q",
+            "K",
+            "p",
+            "n",
+            "b",
+            "r",
+            "q",
+            "k"
+          ],
+          "title": "Label",
+          "type": "string"
+        },
+        "probability": {
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Probability",
+          "type": "number"
+        }
+      },
+      "required": [
+        "label",
+        "probability"
+      ],
+      "title": "LabelProbability",
+      "type": "object"
+    },
+    "Orientation": {
+      "additionalProperties": false,
+      "properties": {
+        "confidence": {
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Confidence",
+          "type": "number"
+        },
+        "method": {
+          "enum": [
+            "board_labels",
+            "piece_layout",
+            "square_colour",
+            "assumed"
+          ],
+          "title": "Method",
+          "type": "string"
+        },
+        "needs_review": {
+          "title": "Needs Review",
+          "type": "boolean"
+        },
+        "quarter_turns_cw": {
+          "description": "Clockwise quarter turns of the corrected board view that bring White to the bottom. 0 means White was at the bottom of the image and 2 means Black was.",
+          "maximum": 3,
+          "minimum": 0,
+          "title": "Quarter Turns Cw",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "quarter_turns_cw",
+        "confidence",
+        "method",
+        "needs_review"
+      ],
+      "title": "Orientation",
+      "type": "object"
+    },
+    "Point": {
+      "additionalProperties": false,
+      "description": "A position in the submitted image: 0,0 is the top left and 1,1 the bottom right.",
+      "properties": {
+        "x": {
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "X",
+          "type": "number"
+        },
+        "y": {
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Y",
+          "type": "number"
+        }
+      },
+      "required": [
+        "x",
+        "y"
+      ],
+      "title": "Point",
+      "type": "object"
+    },
+    "PositionIssue": {
+      "additionalProperties": false,
+      "properties": {
+        "code": {
+          "enum": [
+            "missing_king",
+            "extra_king",
+            "kings_adjacent",
+            "pawn_on_back_rank",
+            "too_many_pawns",
+            "too_many_pieces",
+            "impossible_promotion_count",
+            "orientation_uncertain"
+          ],
+          "title": "Code",
+          "type": "string"
+        },
+        "message": {
+          "title": "Message",
+          "type": "string"
+        },
+        "severity": {
+          "enum": [
+            "blocking",
+            "warning"
+          ],
+          "title": "Severity",
+          "type": "string"
+        },
+        "squares": {
+          "items": {
+            "pattern": "^[a-h][1-8]$",
+            "type": "string"
+          },
+          "title": "Squares",
+          "type": "array"
+        }
+      },
+      "required": [
+        "code",
+        "severity",
+        "message"
+      ],
+      "title": "PositionIssue",
+      "type": "object"
+    },
+    "RecognitionFailure": {
+      "additionalProperties": false,
+      "description": "Recognition could not produce a board. The user can always retry or arrange it by hand.",
+      "properties": {
+        "board_candidates": {
+          "description": "Boards that were found, when several were detected.",
+          "items": {
+            "$ref": "#/$defs/BoardLocation"
+          },
+          "title": "Board Candidates",
+          "type": "array"
+        },
+        "code": {
+          "enum": [
+            "unsupported_media_type",
+            "file_too_large",
+            "image_too_large",
+            "image_unreadable",
+            "no_board_detected",
+            "multiple_boards_detected",
+            "image_too_blurry",
+            "board_incomplete",
+            "recognition_timeout",
+            "internal_error"
+          ],
+          "title": "Code",
+          "type": "string"
+        },
+        "contract_version": {
+          "const": "1.0",
+          "default": "1.0",
+          "title": "Contract Version",
+          "type": "string"
+        },
+        "message": {
+          "description": "Safe to show to the user.",
+          "title": "Message",
+          "type": "string"
+        },
+        "retryable": {
+          "title": "Retryable",
+          "type": "boolean"
+        },
+        "status": {
+          "const": "error",
+          "default": "error",
+          "title": "Status",
+          "type": "string"
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "retryable"
+      ],
+      "title": "RecognitionFailure",
+      "type": "object"
+    },
+    "RecognitionSuccess": {
+      "additionalProperties": false,
+      "properties": {
+        "board": {
+          "$ref": "#/$defs/BoardLocation"
+        },
+        "contract_version": {
+          "const": "1.0",
+          "default": "1.0",
+          "title": "Contract Version",
+          "type": "string"
+        },
+        "engine": {
+          "$ref": "#/$defs/EngineInfo"
+        },
+        "issues": {
+          "items": {
+            "$ref": "#/$defs/PositionIssue"
+          },
+          "title": "Issues",
+          "type": "array"
+        },
+        "orientation": {
+          "$ref": "#/$defs/Orientation"
+        },
+        "placement": {
+          "description": "The piece placement field of a FEN, and nothing else.",
+          "title": "Placement",
+          "type": "string"
+        },
+        "rectified_preview": {
+          "anyOf": [
+            {
+              "pattern": "^data:image/jpeg;base64,",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "The corrected board as a JPEG data URL, for side by side comparison.",
+          "title": "Rectified Preview"
+        },
+        "source_kind": {
+          "enum": [
+            "screenshot",
+            "photo"
+          ],
+          "title": "Source Kind",
+          "type": "string"
+        },
+        "squares": {
+          "items": {
+            "$ref": "#/$defs/SquareResult"
+          },
+          "maxItems": 64,
+          "minItems": 64,
+          "title": "Squares",
+          "type": "array"
+        },
+        "status": {
+          "const": "ok",
+          "default": "ok",
+          "title": "Status",
+          "type": "string"
+        },
+        "timings_ms": {
+          "additionalProperties": {
+            "type": "number"
+          },
+          "title": "Timings Ms",
+          "type": "object"
+        }
+      },
+      "required": [
+        "source_kind",
+        "board",
+        "orientation",
+        "placement",
+        "squares",
+        "engine"
+      ],
+      "title": "RecognitionSuccess",
+      "type": "object"
+    },
+    "SquareResult": {
+      "additionalProperties": false,
+      "description": "The prediction for one square, named by its true board coordinate.",
+      "properties": {
+        "alternatives": {
+          "description": "Next most likely labels, most likely first.",
+          "items": {
+            "$ref": "#/$defs/LabelProbability"
+          },
+          "title": "Alternatives",
+          "type": "array"
+        },
+        "confidence": {
+          "description": "Calibrated probability that label is correct.",
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Confidence",
+          "type": "number"
+        },
+        "label": {
+          "enum": [
+            "empty",
+            "P",
+            "N",
+            "B",
+            "R",
+            "Q",
+            "K",
+            "p",
+            "n",
+            "b",
+            "r",
+            "q",
+            "k"
+          ],
+          "title": "Label",
+          "type": "string"
+        },
+        "needs_review": {
+          "title": "Needs Review",
+          "type": "boolean"
+        },
+        "review_reasons": {
+          "items": {
+            "enum": [
+              "low_confidence",
+              "close_alternative",
+              "position_conflict"
+            ],
+            "type": "string"
+          },
+          "title": "Review Reasons",
+          "type": "array"
+        },
+        "square": {
+          "pattern": "^[a-h][1-8]$",
+          "title": "Square",
+          "type": "string"
+        }
+      },
+      "required": [
+        "square",
+        "label",
+        "confidence",
+        "needs_review"
+      ],
+      "title": "SquareResult",
+      "type": "object"
+    }
+  },
+  "discriminator": {
+    "mapping": {
+      "error": "#/$defs/RecognitionFailure",
+      "ok": "#/$defs/RecognitionSuccess"
+    },
+    "propertyName": "status"
+  },
+  "oneOf": [
+    {
+      "$ref": "#/$defs/RecognitionSuccess"
+    },
+    {
+      "$ref": "#/$defs/RecognitionFailure"
+    }
+  ],
+  "title": "RecognitionResponse"
+}

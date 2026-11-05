@@ -1,0 +1,6 @@
+# Generated contract files are compared byte for byte, so line endings must not vary by OS.
+* text=auto eol=lf
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.webp binary

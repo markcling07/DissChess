@@ -8,10 +8,13 @@ export function Scoresheet({
   rows,
   result,
   firstMoveNumber,
+  marks,
 }: {
   rows: readonly ScoresheetRow[];
   result: string | null;
   firstMoveNumber: number;
+  /** Review marks such as "??", by the move's position in the game, counting from 0. */
+  marks?: ReadonlyMap<number, string>;
 }) {
   const body = useRef<HTMLDivElement>(null);
 
@@ -20,6 +23,19 @@ export function Scoresheet({
   }, [rows.length, result]);
 
   const lastNumber = rows.at(-1)?.number ?? firstMoveNumber - 1;
+  let ply = 0;
+  const writeMove = (san: string | null) => {
+    if (san === null) return null;
+    const mark = marks?.get(ply);
+    ply += 1;
+    return (
+      <>
+        {san}
+        {mark && <span className="sheet__mark">{mark}</span>}
+      </>
+    );
+  };
+
   const blanks = Array.from({ length: Math.max(0, MINIMUM_ROWS - rows.length) }, (_, index) => lastNumber + index + 1);
 
   return (
@@ -34,8 +50,8 @@ export function Scoresheet({
           {rows.map((row) => (
             <li key={row.number} className="sheet__row">
               <span className="sheet__number">{row.number}</span>
-              <span className="sheet__move">{row.white ?? (row.black ? "…" : "")}</span>
-              <span className="sheet__move">{row.black ?? ""}</span>
+              <span className="sheet__move">{writeMove(row.white) ?? (row.black ? "…" : "")}</span>
+              <span className="sheet__move">{writeMove(row.black)}</span>
             </li>
           ))}
           {blanks.map((number, index) => (

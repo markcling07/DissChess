@@ -11,6 +11,7 @@
 | Hosting | Static host for the web app and any container host for the service, chosen later | No vendor lock-in |
 | App look | The board colours of the owner's reference screenshot (`#eaedd1` and `#769556`) with Celtic pieces (MIT) | Closest set that can legally ship. The reference pieces look like Chess.com's Neo set, which is probably copyrighted |
 | Recognition training | Licence-clean artwork, with non-commercial and site artwork used for testing only | Trained weights may count as derived from their data |
+| Chess engine | Stockfish 19 Lite, single-threaded, in the browser | 1.9 MB against 99 MB for the full build, with no special server headers. Weaker than full Stockfish, but still strong. No server cost, and it works offline |
 | Project location | `C:\dev\photo-to-chess` | OneDrive sync and locks interfere with `node_modules`, `.venv` and model weights |
 
 ## Behaviour the spec leaves open
@@ -31,7 +32,7 @@
 | M2 | Upload, camera, paste, secure intake, screenshot recognition | Target of at least 99.9% per square on themes kept out of training | Features built. **Target missed: 96.1% on held-out artwork.** 99.9% on calibration artwork. See the model's README |
 | M3 | Photo model comparison: chesscog, a detector mapped through the board's perspective, and a corner model trained on ChessReD2K | A choice backed by numbers, and photo targets reset to what's achievable | |
 | M4 | Photo recognition in production: training, calibration, orientation | Meets the M3 targets on chess sets kept out of training | |
-| M5 | Stockfish play and analysis, with offline caching for both | Works from any reconstructed position | |
+| M5 | Stockfish play and analysis, with offline caching for both | Works from any reconstructed position | Done, using the 1.9 MB Lite build. Real phones are still to check in M6 |
 | M6 | Full error handling, service worker and install prompts, responsive UI, full test list, deployment docs | Every error case in the spec has a test, and it has been tried on real phones | |
 | M7 | Capacitor wrapper, native camera, icons, store listings, submission | Accepted by both stores, after licensing advice | |
 
@@ -39,6 +40,10 @@
 
 - **M2 accuracy:** needs real screenshots to judge. The numbers so far are synthetic, and only one real screenshot has been tried. Old font-style piece sets are the weakest.
 - **Silently wrong boards:** 6.5% on held-out artwork, or 1.1% on positions from play without the two weakest sets. Reduce this further before calling recognition reliable.
+- **Engine on phones:** speed and memory haven't been measured on a real phone. Searches have fixed time limits, so a slower phone should search less deeply and not take longer.
+- **Strength levels:** Beginner, Casual, Club, Strong and Maximum are relative settings with no rating attached. In a 12-game check, Maximum and Club each beat Beginner in all 6 of their games.
+- **Repetition against the computer:** the engine sees only the current position, so it can't plan around repeated positions. The game still detects the draw.
+- **Service worker updates:** old built files stay in the cache until its version changes. Add clean-up and an update prompt in M6.
 - **Dragged pieces:** a piece caught mid-drag in a screenshot isn't detected.
 - **Camera:** tested only with a browser's fake camera. It needs HTTPS outside localhost, and it can't read real boards until M4.
 - **Real test photos:** 30–50 labelled photos of chess sets the engine hasn't seen, needed by M3. This is the honest test of photo accuracy.

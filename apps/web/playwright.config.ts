@@ -19,7 +19,8 @@ export default defineConfig({
   workers: 4,
   forbidOnly: true,
   reporter: [["list"]],
-  use: { baseURL: "http://localhost:4173", channel, trace: "off", launchOptions },
+  // Tests that need offline support turn service workers back on.
+  use: { baseURL: "http://localhost:4173", channel, trace: "off", launchOptions, serviceWorkers: "block" },
   projects: [
     { name: "desktop", use: { viewport: { width: 1280, height: 800 } } },
     {

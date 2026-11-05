@@ -98,6 +98,13 @@ export class GameSession {
     this.chess = new Chess(this.startFen);
   }
 
+  /** Each move played, with the positions either side of it. */
+  plies(): { san: string; color: Color; before: string; after: string }[] {
+    return this.chess
+      .history({ verbose: true })
+      .map(({ san, color, before, after }) => ({ san, color, before, after }));
+  }
+
   /** Move history in scoresheet rows. A game starting with Black to move leaves White's cell empty. */
   scoresheet(): ScoresheetRow[] {
     const start = new Chess(this.startFen);

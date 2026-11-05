@@ -880,3 +880,102 @@ button.on-board {
   display: grid;
   grid-template-columns: 2.5rem 1fr auto;
 }
+
+/* Playing and analysing with the engine */
+.chooser {
+  display: grid;
+  gap: 12px;
+  padding: 12px;
+  background: var(--vinyl-mid);
+}
+
+.chooser .field select {
+  background: var(--vinyl-deep);
+}
+
+.analysis {
+  display: grid;
+  gap: 16px;
+}
+
+.analysis__heading {
+  margin: 0 0 6px;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.evaluation {
+  display: grid;
+  gap: 4px;
+}
+
+.evaluation__bar {
+  height: 14px;
+  overflow: hidden;
+  background: #101010;
+  border-radius: 2px;
+}
+
+.evaluation__bar span {
+  display: block;
+  height: 100%;
+  background: var(--square-light);
+  transition: width 200ms ease;
+}
+
+.evaluation__score {
+  font-size: 1.75rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.1;
+}
+
+.evaluation__words {
+  font-size: 0.875rem;
+  color: var(--buff-soft);
+}
+
+.lines,
+.insights,
+.reviewed {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.line {
+  display: grid;
+  grid-template-columns: 3.5rem 1fr;
+  gap: 8px;
+  font-size: 0.9375rem;
+}
+
+.line__score {
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.line__moves {
+  overflow-wrap: anywhere;
+}
+
+.insights li {
+  padding-left: 10px;
+  border-left: 3px solid var(--canary);
+}
+
+.reviewed__move {
+  font-weight: 600;
+}
+
+.analysis button {
+  margin-top: 2px;
+}
+
+/* Review marks, added to the sheet in red pencil after the game */
+.sheet__mark {
+  margin-left: 2px;
+  color: #c8321e;
+}

@@ -4,6 +4,7 @@
 |---|---|---|---|
 | Celtic pieces (`apps/web/src/pieces/celtic`) | Pieces shown in the app, with colour reduced by CSS | Maurizio Monge | MIT, in that folder's `LICENSE` |
 | Chessground | The interactive board | Lichess contributors | GPL-3.0-or-later |
+| Stockfish 19 Lite, via [stockfish.js](https://github.com/nmrugg/stockfish.js) 19.0.1 | Computer opponent and analysis, copied unchanged from the `stockfish` npm package into the built app | The Stockfish developers; Nathan Rugg | GPL-3.0, with the licence shipped beside the engine as `engine/COPYING.txt`. Source is at the links in this row and on the [Stockfish site](https://github.com/official-stockfish/Stockfish) |
 | chess.js | Chess rules | Jeff Hlywa and contributors | BSD-2-Clause |
 | Barlow, Patrick Hand | Fonts | Jeremy Tribby; Patrick Wagesreiter | SIL Open Font License |
 | cburnett pieces (`apps/web/e2e/fixtures`) | Test images only | Colin M.L. Burnett | GPL-2.0-or-later |

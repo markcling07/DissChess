@@ -32,12 +32,14 @@ export interface BoardProps {
   interaction: BoardInteraction;
   /** Extra classes for particular squares, such as ones needing attention. */
   highlights?: ReadonlyMap<Square, string>;
+  /** Arrows drawn over the board, such as the engine's best move. */
+  arrows?: readonly { from: Square; to: Square }[];
 }
 
 const COLOR_NAME = { w: "white", b: "black" } as const;
 
 function buildConfig(props: BoardProps, onEvent: () => BoardProps): Config {
-  const { placement, orientation, interaction, highlights } = props;
+  const { placement, orientation, interaction, highlights, arrows = [] } = props;
   const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   const shared: Config = {
     fen: placement,
@@ -46,7 +48,11 @@ function buildConfig(props: BoardProps, onEvent: () => BoardProps): Config {
     animation: { enabled: !reducedMotion, duration: 150 },
     premovable: { enabled: false },
     predroppable: { enabled: false },
-    drawable: { enabled: false, visible: false },
+    drawable: {
+      enabled: false,
+      visible: true,
+      autoShapes: arrows.map(({ from, to }) => ({ orig: from, dest: to, brush: "paleBlue" })),
+    },
     highlight: { custom: new Map(highlights) as Map<Key, string> },
   };
 

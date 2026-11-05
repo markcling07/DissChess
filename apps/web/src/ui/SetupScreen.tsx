@@ -1,0 +1,312 @@
+import type { Color, Square } from "chess.js";
+import { useMemo, useState, type Dispatch } from "react";
+import {
+  CASTLING_RIGHTS,
+  canHoldCastlingRight,
+  enPassantOptions,
+  parseFen,
+  toFen,
+  toPlacementString,
+  type CastlingRight,
+  type PieceCode,
+  type PositionSetup,
+} from "../chess/position";
+import { forcedSideToMove, hasBlockingIssue, validatePosition } from "../chess/validate";
+import { normaliseSetup, resolveSetup, type SetupAction } from "../setup/setupState";
+import { Board } from "./Board";
+import { IssueList } from "./IssueList";
+import { PIECE_INFO, PieceImage } from "./pieces";
+
+type Tool = PieceCode | "erase" | null;
+
+const WHITE_PIECES: readonly PieceCode[] = ["K", "Q", "R", "B", "N", "P"];
+const BLACK_PIECES: readonly PieceCode[] = ["k", "q", "r", "b", "n", "p"];
+const SIDE_NAME: Record<Color, string> = { w: "White", b: "Black" };
+const CASTLING_LABEL: Record<CastlingRight, string> = {
+  K: "White kingside",
+  Q: "White queenside",
+  k: "Black kingside",
+  q: "Black queenside",
+};
+
+function parseCounter(text: string): number {
+  return text.trim() === "" ? Number.NaN : Number(text);
+}
+
+export function SetupScreen({
+  setup,
+  dispatch,
+  onStart,
+}: {
+  setup: PositionSetup;
+  dispatch: Dispatch<SetupAction>;
+  onStart: (fen: string) => void;
+}) {
+  const [tool, setTool] = useState<Tool>(null);
+  const [fenDraft, setFenDraft] = useState("");
+  const [fenMessage, setFenMessage] = useState<{ text: string; isError: boolean } | null>(null);
+
+  const resolved = useMemo(() => resolveSetup(setup), [setup]);
+  const issues = useMemo(() => validatePosition(resolved), [resolved]);
+  const forcedSide = useMemo(() => forcedSideToMove(setup.placement), [setup.placement]);
+  const blocked = hasBlockingIssue(issues);
+  const side = resolved.sideToMove;
+  const epOptions = side ? enPassantOptions(setup.placement, side) : [];
+
+  const highlights = useMemo(() => {
+    const squares = new Map<Square, string>();
+    for (const issue of issues) {
+      if (issue.severity === "blocking") {
+        for (const square of issue.squares) squares.set(square, "needs-fixing");
+      }
+    }
+    return squares;
+  }, [issues]);
+
+  function handleTap(square: Square) {
+    if (tool === "erase") dispatch({ type: "remove", square });
+    else if (tool) dispatch({ type: "place", square, piece: tool });
+  }
+
+  function loadFen() {
+    try {
+      const parsed = parseFen(fenDraft);
+      const normalised = normaliseSetup(parsed);
+      const dropped =
+        CASTLING_RIGHTS.some((right) => parsed.castling[right] !== normalised.castling[right]) ||
+        parsed.enPassant !== normalised.enPassant;
+      dispatch({ type: "load", setup: parsed });
+      setFenMessage({
+        text: dropped
+          ? "Loaded. Castling or en passant details that didn't fit the board were removed."
+          : "Loaded.",
+        isError: false,
+      });
+    } catch (error) {
+      setFenMessage({ text: (error as Error).message, isError: true });
+    }
+  }
+
+  return (
+    <main className="layout layout--setup">
+      <section className="layout__board" aria-label="Position">
+        <Board
+          placement={toPlacementString(setup.placement)}
+          orientation="w"
+          highlights={highlights}
+          interaction={{
+            kind: "edit",
+            tapMode: tool !== null,
+            onPlacementChange: (placement) => dispatch({ type: "setPlacement", placement }),
+            onSquareTap: handleTap,
+          }}
+        />
+
+        <div className="palette" role="group" aria-label="Choose what tapping a square does">
+          <ToolButton active={tool === null} label="Move pieces" onClick={() => setTool(null)}>
+            <span className="tool-text">Move</span>
+          </ToolButton>
+          {WHITE_PIECES.map((piece) => (
+            <ToolButton
+              key={piece}
+              active={tool === piece}
+              label={`Place ${PIECE_INFO[piece].name.toLowerCase()}`}
+              onClick={() => setTool(piece)}
+            >
+              <PieceImage piece={piece} />
+            </ToolButton>
+          ))}
+          <ToolButton active={tool === "erase"} label="Remove pieces" onClick={() => setTool("erase")}>
+            <span className="tool-text">Erase</span>
+          </ToolButton>
+          {BLACK_PIECES.map((piece) => (
+            <ToolButton
+              key={piece}
+              active={tool === piece}
+              label={`Place ${PIECE_INFO[piece].name.toLowerCase()}`}
+              onClick={() => setTool(piece)}
+            >
+              <PieceImage piece={piece} />
+            </ToolButton>
+          ))}
+        </div>
+
+        <div className="actions">
+          <button type="button" onClick={() => dispatch({ type: "standard" })}>
+            Standard position
+          </button>
+          <button type="button" onClick={() => dispatch({ type: "clear" })}>
+            Clear board
+          </button>
+          <button type="button" onClick={() => dispatch({ type: "rotate" })}>
+            Rotate pieces 90°
+          </button>
+        </div>
+      </section>
+
+      <section className="layout__side panel">
+        <h1>Set up the position</h1>
+        <p className="lede">
+          A board can't show whose turn it is or what happened earlier in the game, so check these before
+          you play.
+        </p>
+
+        <fieldset>
+          <legend>Whose turn is it?</legend>
+          <div className="segmented">
+            {(["w", "b"] as const).map((color) => (
+              <label key={color} className="segmented__option">
+                <input
+                  type="radio"
+                  name="side"
+                  checked={side === color}
+                  disabled={forcedSide !== null}
+                  onChange={() => dispatch({ type: "setSide", side: color })}
+                />
+                <span>{SIDE_NAME[color]}</span>
+              </label>
+            ))}
+          </div>
+          {forcedSide && (
+            <p className="hint">
+              {SIDE_NAME[forcedSide]} is in check, so it must be {SIDE_NAME[forcedSide]}'s turn.
+            </p>
+          )}
+        </fieldset>
+
+        <fieldset>
+          <legend>Who can still castle?</legend>
+          <div className="checks">
+            {CASTLING_RIGHTS.map((right) => {
+              const available = canHoldCastlingRight(setup.placement, right);
+              return (
+                <label key={right} className={available ? "check" : "check check--off"}>
+                  <input
+                    type="checkbox"
+                    checked={setup.castling[right]}
+                    disabled={!available}
+                    onChange={(event) =>
+                      dispatch({ type: "setCastling", right, value: event.target.checked })
+                    }
+                  />
+                  <span>{CASTLING_LABEL[right]}</span>
+                </label>
+              );
+            })}
+          </div>
+          <p className="hint">
+            Only available with the king and rook on their home squares. Leave unticked if they've moved
+            or you aren't sure.
+          </p>
+        </fieldset>
+
+        <details className="more">
+          <summary>En passant and move numbers</summary>
+
+          <label className="field">
+            <span>En passant capture on</span>
+            <select
+              value={setup.enPassant ?? ""}
+              disabled={!epOptions.length}
+              onChange={(event) =>
+                dispatch({ type: "setEnPassant", square: (event.target.value || null) as Square | null })
+              }
+            >
+              <option value="">None</option>
+              {epOptions.map((square) => (
+                <option key={square} value={square}>
+                  {square}
+                </option>
+              ))}
+            </select>
+          </label>
+          <p className="hint">Only if the last move was a pawn moving two squares next to an enemy pawn.</p>
+
+          <div className="field-row">
+            <label className="field">
+              <span>Moves since a capture or pawn move</span>
+              <input
+                type="number"
+                min={0}
+                inputMode="numeric"
+                value={Number.isNaN(setup.halfmove) ? "" : setup.halfmove}
+                onChange={(event) => dispatch({ type: "setHalfmove", value: parseCounter(event.target.value) })}
+              />
+            </label>
+            <label className="field">
+              <span>Move number</span>
+              <input
+                type="number"
+                min={1}
+                inputMode="numeric"
+                value={Number.isNaN(setup.fullmove) ? "" : setup.fullmove}
+                onChange={(event) => dispatch({ type: "setFullmove", value: parseCounter(event.target.value) })}
+              />
+            </label>
+          </div>
+          <p className="hint">If you don't know these, leave them. They only affect the fifty-move draw and how moves are numbered.</p>
+        </details>
+
+        <details className="more">
+          <summary>Load a FEN</summary>
+          <label className="field">
+            <span>FEN</span>
+            <input
+              type="text"
+              spellCheck={false}
+              autoCapitalize="off"
+              autoCorrect="off"
+              value={fenDraft}
+              onChange={(event) => setFenDraft(event.target.value)}
+            />
+          </label>
+          <button type="button" onClick={loadFen}>
+            Load FEN
+          </button>
+          {fenMessage && (
+            <p className={fenMessage.isError ? "hint hint--error" : "hint"} role="status">
+              {fenMessage.text}
+            </p>
+          )}
+        </details>
+
+        <IssueList issues={issues} />
+
+        {!blocked && side && <p className="fen">{toFen(resolved)}</p>}
+
+        <button
+          type="button"
+          className="primary"
+          disabled={blocked}
+          onClick={() => onStart(toFen(resolved))}
+        >
+          Start game
+        </button>
+      </section>
+    </main>
+  );
+}
+
+function ToolButton({
+  active,
+  label,
+  onClick,
+  children,
+}: {
+  active: boolean;
+  label: string;
+  onClick: () => void;
+  children: React.ReactNode;
+}) {
+  return (
+    <button
+      type="button"
+      className={active ? "tool tool--active" : "tool"}
+      aria-pressed={active}
+      aria-label={label}
+      onClick={onClick}
+    >
+      {children}
+    </button>
+  );
+}

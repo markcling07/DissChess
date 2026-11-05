@@ -1,0 +1,654 @@
+/*
+ * A chess club's kit: the green and buff of a roll-up tournament board, and a scoresheet in
+ * ballpoint on carbonless canary paper. The sheet is the one bold element. All else stays quiet.
+ */
+:root {
+  --vinyl-deep: #163a2c;
+  --vinyl-mid: #235240;
+  --vinyl-line: #3c6e59;
+  --square-dark: #5f9473;
+  --square-light: #efead2;
+  --buff: #efead2;
+  --buff-soft: #bfd0bd;
+  --canary: #f8eea3;
+  --canary-rule: #cdbd60;
+  --ink: #1a389c;
+  --flag: #ff7a5f;
+  --flag-strong: #d4311a;
+
+  --font-ui: "Barlow", system-ui, sans-serif;
+  --font-hand: "Patrick Hand", "Segoe Print", cursive;
+
+  color-scheme: dark;
+  font-family: var(--font-ui);
+  font-size: 100%;
+  line-height: 1.45;
+  color: var(--buff);
+  background: var(--vinyl-deep);
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--vinyl-deep);
+}
+
+h1 {
+  margin: 0;
+  font-size: 1.75rem;
+  font-weight: 600;
+  line-height: 1.15;
+}
+
+p {
+  margin: 0;
+}
+
+:focus-visible {
+  outline: 3px solid var(--canary);
+  outline-offset: 2px;
+}
+
+.masthead {
+  padding: 12px 16px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  border-bottom: 1px solid var(--vinyl-line);
+}
+
+/* Layout: the board comes first everywhere, because everything else is about the board. */
+.layout {
+  display: grid;
+  gap: 24px;
+  padding: 16px;
+  margin-inline: auto;
+}
+
+.layout__board,
+.layout__side {
+  display: grid;
+  gap: 16px;
+  align-content: start;
+  min-width: 0;
+}
+
+/* On wider screens the board shrinks enough to keep its controls on screen without scrolling. */
+@media (min-width: 900px) {
+  .layout {
+    grid-template-columns: minmax(0, var(--board-size)) minmax(320px, 400px);
+    justify-content: center;
+    gap: 40px;
+    padding: 24px;
+  }
+
+  .layout--setup {
+    --board-size: clamp(360px, calc(100vh - 300px), 660px);
+  }
+
+  .layout--game {
+    --board-size: clamp(360px, calc(100vh - 220px), 720px);
+  }
+}
+
+.panel {
+  gap: 20px;
+}
+
+.lede {
+  color: var(--buff-soft);
+  max-width: 44ch;
+}
+
+/* Board */
+.board-stack {
+  position: relative;
+}
+
+.board {
+  width: 100%;
+  aspect-ratio: 1;
+}
+
+cg-board {
+  background-color: var(--square-light);
+  background-image: repeating-conic-gradient(var(--square-dark) 0 25%, var(--square-light) 0 50%);
+  background-size: 25% 25%;
+}
+
+cg-board square.move-dest {
+  background: radial-gradient(rgba(22, 58, 44, 0.55) 20%, transparent 22%);
+}
+
+cg-board square.oc.move-dest {
+  background: radial-gradient(transparent 78%, rgba(22, 58, 44, 0.55) 80%);
+}
+
+cg-board square.move-dest:hover {
+  background: rgba(22, 58, 44, 0.3);
+}
+
+cg-board square.selected {
+  background-color: rgba(248, 238, 163, 0.7);
+}
+
+cg-board square.last-move {
+  background-color: rgba(248, 238, 163, 0.5);
+}
+
+cg-board square.check {
+  background: radial-gradient(ellipse at center, #e8351c 0%, rgba(232, 53, 28, 0.75) 35%, transparent 80%);
+}
+
+cg-board square.needs-fixing {
+  box-shadow: inset 0 0 0 4px var(--flag-strong);
+  background-color: rgba(212, 49, 26, 0.3);
+}
+
+.cg-wrap coords {
+  font-family: var(--font-ui);
+  font-size: clamp(10px, 1.6vw, 12px);
+  font-weight: 600;
+  opacity: 1;
+}
+
+/* Chessground's default offsets suit one board size. These line up at any size. */
+.cg-wrap coords.files {
+  left: 0;
+  bottom: 1px;
+  height: auto;
+  text-transform: none;
+}
+
+.cg-wrap coords.ranks {
+  top: 0;
+  left: 3px;
+}
+
+.cg-wrap coords coord {
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+.cg-wrap coords.files coord {
+  padding-right: 3px;
+  text-align: right;
+}
+
+.cg-wrap coords.ranks coord {
+  padding-top: 1px;
+  transform: none;
+}
+
+/* Each label contrasts with the square it sits on. a1 is dark, and h8 is dark when flipped. */
+.orientation-white .ranks :nth-child(odd),
+.orientation-white .files :nth-child(odd),
+.orientation-black .ranks :nth-child(even),
+.orientation-black .files :nth-child(even) {
+  color: var(--square-light);
+}
+
+.orientation-white .ranks :nth-child(even),
+.orientation-white .files :nth-child(even),
+.orientation-black .ranks :nth-child(odd),
+.orientation-black .files :nth-child(odd) {
+  color: var(--vinyl-deep);
+}
+
+/* Piece tools */
+.piece-image {
+  display: block;
+  position: relative;
+  width: 100%;
+  max-width: 48px;
+  aspect-ratio: 1;
+}
+
+.cg-wrap.piece-image piece {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  will-change: auto;
+}
+
+.palette {
+  display: grid;
+  grid-template-columns: 1.3fr repeat(6, 1fr);
+  gap: 4px;
+}
+
+.tool {
+  display: grid;
+  place-items: center;
+  min-height: 44px;
+  padding: 2px;
+  background: var(--vinyl-mid);
+  border: 1px solid transparent;
+  border-radius: 3px;
+}
+
+.tool:hover:not(.tool--active) {
+  background: var(--vinyl-line);
+}
+
+.tool--active {
+  background: var(--canary);
+  color: var(--vinyl-deep);
+}
+
+.tool-text {
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+/* Controls */
+button {
+  min-height: 44px;
+  padding: 8px 14px;
+  font: inherit;
+  font-weight: 500;
+  color: var(--buff);
+  background: transparent;
+  border: 1px solid var(--vinyl-line);
+  border-radius: 3px;
+  cursor: pointer;
+}
+
+button:hover:not(:disabled) {
+  background: var(--vinyl-mid);
+}
+
+button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+button.tool {
+  border-color: transparent;
+}
+
+button.tool--active,
+button.tool--active:hover:not(:disabled) {
+  background: var(--canary);
+}
+
+button.primary {
+  color: var(--vinyl-deep);
+  font-weight: 600;
+  background: var(--canary);
+  border-color: var(--canary);
+}
+
+button.primary:hover:not(:disabled) {
+  background: #fff6b8;
+}
+
+button.armed,
+button.armed:hover:not(:disabled) {
+  color: var(--vinyl-deep);
+  background: var(--flag);
+  border-color: var(--flag);
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+@media (max-width: 899px) {
+  .actions button {
+    flex: 1 1 auto;
+  }
+}
+
+fieldset {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+legend,
+.more summary {
+  padding: 0;
+  font-weight: 600;
+}
+
+legend {
+  margin-bottom: 8px;
+}
+
+.hint {
+  font-size: 0.875rem;
+  color: var(--buff-soft);
+  max-width: 48ch;
+}
+
+.hint--error {
+  color: var(--flag);
+}
+
+.segmented {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.segmented__option {
+  position: relative;
+  cursor: pointer;
+}
+
+.segmented__option input {
+  position: absolute;
+  inset: 0;
+  margin: 0;
+  opacity: 0;
+  cursor: inherit;
+}
+
+.segmented__option span {
+  display: grid;
+  place-items: center;
+  min-height: 44px;
+  font-weight: 500;
+  border: 1px solid var(--vinyl-line);
+  border-radius: 3px;
+}
+
+.segmented__option input:checked + span {
+  color: var(--vinyl-deep);
+  font-weight: 600;
+  background: var(--buff);
+  border-color: var(--buff);
+}
+
+.segmented__option input:focus-visible + span {
+  outline: 3px solid var(--canary);
+  outline-offset: 2px;
+}
+
+.segmented__option input:disabled {
+  cursor: not-allowed;
+}
+
+.segmented__option input:disabled:not(:checked) + span {
+  opacity: 0.45;
+}
+
+.checks {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px 12px;
+}
+
+.check {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 36px;
+  cursor: pointer;
+}
+
+.check input {
+  width: 20px;
+  height: 20px;
+  margin: 0;
+  accent-color: var(--canary);
+}
+
+.check--off {
+  color: var(--buff-soft);
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.more {
+  display: block;
+  padding-top: 12px;
+  border-top: 1px solid var(--vinyl-line);
+}
+
+.more summary {
+  min-height: 32px;
+  cursor: pointer;
+}
+
+.more[open] {
+  padding-bottom: 4px;
+}
+
+.more > * + * {
+  margin-top: 10px;
+}
+
+.field {
+  display: grid;
+  gap: 4px;
+  align-content: end;
+  font-size: 0.875rem;
+}
+
+.field input,
+.field select {
+  width: 100%;
+  min-height: 44px;
+  padding: 8px;
+  font: inherit;
+  font-size: 1rem;
+  color: var(--buff);
+  background: var(--vinyl-mid);
+  border: 1px solid var(--vinyl-line);
+  border-radius: 3px;
+}
+
+.field-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+/* Problems, marked with a fallen clock flag */
+.issues {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.issue {
+  position: relative;
+  padding-left: 22px;
+}
+
+.issue::before {
+  content: "";
+  position: absolute;
+  left: 2px;
+  top: 0.32em;
+  width: 13px;
+  height: 11px;
+  background: var(--flag);
+  clip-path: polygon(0 0, 100% 50%, 0 100%);
+}
+
+.issue--warning::before {
+  background: var(--canary);
+}
+
+.fen {
+  display: block;
+  font-size: 0.8125rem;
+  color: var(--buff-soft);
+  overflow-wrap: anywhere;
+}
+
+.fen-row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 12px;
+  align-items: center;
+}
+
+/* Status */
+.status {
+  font-size: 1.125rem;
+  font-weight: 500;
+}
+
+.status--over {
+  font-size: 1.375rem;
+  font-weight: 600;
+  color: var(--canary);
+}
+
+/* Promotion */
+.promotion {
+  position: absolute;
+  inset: 0;
+  z-index: 20;
+  display: grid;
+  place-items: center;
+  padding: 16px;
+  background: rgba(22, 58, 44, 0.65);
+}
+
+.promotion__card {
+  display: grid;
+  gap: 12px;
+  justify-items: center;
+  padding: 16px;
+  color: var(--vinyl-deep);
+  background: var(--square-light);
+  border-radius: 4px;
+}
+
+.promotion__card p {
+  font-weight: 600;
+}
+
+.promotion__choices {
+  display: grid;
+  grid-template-columns: repeat(4, 64px);
+  gap: 6px;
+}
+
+.promotion__card button:not(.tool) {
+  color: var(--vinyl-deep);
+  border-color: var(--vinyl-deep);
+}
+
+.promotion__card button:not(.tool):hover {
+  color: var(--buff);
+}
+
+.promotion__card :focus-visible {
+  outline-color: var(--ink);
+}
+
+.promotion__choices .tool {
+  background: var(--square-dark);
+}
+
+/* The scoresheet */
+.sheet {
+  --row: 2.1rem;
+  color: var(--ink);
+  background: var(--canary);
+  border-radius: 2px;
+  box-shadow: 0 2px 0 var(--canary-rule), 0 10px 24px rgba(0, 0, 0, 0.35);
+}
+
+@media (min-width: 900px) {
+  .sheet {
+    transform: rotate(-0.6deg);
+  }
+}
+
+.sheet__head,
+.sheet__row {
+  display: grid;
+  grid-template-columns: 2.75rem 1fr 1fr;
+}
+
+.sheet__head {
+  height: var(--row);
+  align-items: center;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--vinyl-deep);
+  border-bottom: 2px solid var(--vinyl-deep);
+}
+
+.sheet__head span {
+  padding-inline: 10px;
+}
+
+.sheet__body {
+  max-height: calc(var(--row) * 12);
+  overflow-y: auto;
+}
+
+@media (min-width: 900px) {
+  .sheet__body {
+    max-height: calc(var(--row) * 15);
+  }
+}
+
+.sheet__rows {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.sheet__row {
+  height: var(--row);
+  align-items: center;
+  border-bottom: 1px solid var(--canary-rule);
+}
+
+.sheet__number {
+  height: 100%;
+  display: grid;
+  place-items: center;
+  font-size: 0.875rem;
+  font-variant-numeric: tabular-nums;
+  color: var(--vinyl-deep);
+  border-right: 1px solid var(--canary-rule);
+}
+
+.sheet__move {
+  padding-inline: 10px;
+  font-family: var(--font-hand);
+  font-size: 1.3rem;
+  line-height: 1;
+}
+
+.sheet__move + .sheet__move {
+  height: 100%;
+  display: flex;
+  align-items: center;
+  border-left: 1px solid var(--canary-rule);
+}
+
+.sheet__result {
+  padding: 6px 10px;
+  font-family: var(--font-hand);
+  font-size: 1.3rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    scroll-behavior: auto;
+    transition: none;
+  }
+}

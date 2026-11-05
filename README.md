@@ -2,13 +2,13 @@
 
 Turns a photo or screenshot of a chessboard into a playable game. It ships first as an installable web app, then as iOS and Android store apps built from the same code.
 
-**Status: milestone M0.** The API contract and evaluation tool exist. Image recognition and the game aren't built yet. See [docs/plan.md](docs/plan.md) for the milestones and decisions.
+**Status: milestone M1.** You can set up any position by hand and play on from it. Image recognition and the chess engine aren't built yet. See [docs/plan.md](docs/plan.md) for the milestones and decisions.
 
 ## Layout
 
 | Path | Contents |
 |---|---|
-| `apps/web` | The web app (from M1) |
+| `apps/web` | The web app: position editor, validation and game |
 | `packages/contract` | JSON Schema and TypeScript types, generated from the Python models |
 | `services/vision` | The recognition service, including the contract's source of truth |
 | `ml` | Evaluation and training tools, never deployed |
@@ -16,7 +16,7 @@ Turns a photo or screenshot of a chessboard into a playable game. It ships first
 
 ## Setup
 
-You need Node 24, pnpm 11 and Python 3.12.
+You need Node 24, pnpm 11, Python 3.12 and Microsoft Edge, which the browser tests use. To test in another browser, set `PW_CHANNEL`, for example to `chrome`.
 
 ```bash
 pnpm install
@@ -30,7 +30,8 @@ pnpm setup:python
 
 | Command | What it does |
 |---|---|
-| `pnpm verify` | Runs lint, tests, type checks and contract checks |
+| `pnpm --filter @photo-to-chess/web dev` | Runs the web app at http://localhost:5173 |
+| `pnpm verify` | Runs lint, tests, type checks, contract checks, the build and the browser tests |
 | `pnpm contract:generate` | Regenerates the schema and types after editing `services/vision/src/ptc_vision/contract.py` |
 | `pnpm eval run <corpus> --recognizer module:factory` | Measures an engine's accuracy |
 

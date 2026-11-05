@@ -25,7 +25,7 @@
 | # | Milestone | Done when | Status |
 |---|---|---|---|
 | M0 | Repo, API contract, evaluation tool, labelled test image structure | Accuracy can be measured with one command | Done, with no engine or real images to measure yet |
-| M1 | Game core, position editor, validation, manual setup, mobile-first UI, web app manifest | All rules pass tests from any FEN, with no recognition involved | |
+| M1 | Game core, position editor, validation, manual setup, mobile-first UI, web app manifest | All rules pass tests from any FEN, with no recognition involved | Done. Touch dragging and real phones are still to check in M6 |
 | M2 | Upload, camera, paste, secure intake, screenshot recognition | Target of at least 99.9% per square on themes kept out of training | |
 | M3 | Photo model comparison: chesscog, a detector mapped through the board's perspective, and a corner model trained on ChessReD2K | A choice backed by numbers, and photo targets reset to what's achievable | |
 | M4 | Photo recognition in production: training, calibration, orientation | Meets the M3 targets on chess sets kept out of training | |
@@ -39,4 +39,6 @@
 - **Licences to confirm before use:** ChessReD, each Roboflow dataset, and FastAPI (not listed on PyPI).
 - **chesscog models:** confirm the pretrained downloads still work.
 - **Docker:** not installed on the development machine, so Dockerfiles can't be tested there.
+- **Keyboard play:** Chessground has no keyboard control of the board. The controls around it work by keyboard, but moving pieces doesn't. Address this in M6.
+- **Touch dragging:** browser tests cover tapping on a phone and dragging with a mouse, but not dragging by touch. Try it on real phones in M6.
 - **Chess.com screenshots:** testing only, never for training or shipping, because the piece art is proprietary.

@@ -15,3 +15,9 @@ if (!existsSync(venvPython)) {
 
 run(venvPython, ["-m", "pip", "install", "--upgrade", "pip"]);
 run(venvPython, ["-m", "pip", "install", "-e", "services/vision[dev]", "-e", "ml[dev]"]);
+
+// Training tools are only needed to rebuild the model, and they're large.
+if (process.argv.includes("--train")) {
+  run(venvPython, ["-m", "pip", "install", "torch", "--index-url", "https://download.pytorch.org/whl/cpu"]);
+  run(venvPython, ["-m", "pip", "install", "-e", "ml[train]"]);
+}

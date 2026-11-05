@@ -1,27 +1,50 @@
 import { useEffect, useReducer, useState } from "react";
-import { standardSetup } from "./chess/position";
-import { setupReducer } from "./setup/setupState";
+import { initialSession, sessionReducer } from "./setup/sessionState";
 import { GameScreen } from "./ui/GameScreen";
+import { InputScreen } from "./ui/InputScreen";
 import { SetupScreen } from "./ui/SetupScreen";
 
+type Screen = "input" | "setup" | "game";
+
 export function App() {
-  const [setup, dispatch] = useReducer(setupReducer, undefined, standardSetup);
-  const [startFen, setStartFen] = useState<string | null>(null);
+  const [session, dispatch] = useReducer(sessionReducer, undefined, initialSession);
+  const [screen, setScreen] = useState<Screen>("input");
+  const [startFen, setStartFen] = useState<string>("");
 
   // The start button sits low on a long page, so without this the next screen opens scrolled down,
   // with the board out of view.
   useEffect(() => {
     window.scrollTo(0, 0);
-  }, [startFen]);
+  }, [screen]);
 
   return (
     <>
-      <header className="masthead">Photo to Chess</header>
-      {startFen === null ? (
-        <SetupScreen setup={setup} dispatch={dispatch} onStart={setStartFen} />
-      ) : (
-        <GameScreen key={startFen} startFen={startFen} onEdit={() => setStartFen(null)} />
+      {screen !== "input" && <header className="masthead">Photo to Chess</header>}
+      {screen === "input" && (
+        <InputScreen
+          onRecognized={(result) => {
+            dispatch({ type: "useRecognition", result });
+            setScreen("setup");
+          }}
+          onArrangeByHand={() => {
+            dispatch({ type: "startByHand" });
+            setScreen("setup");
+          }}
+        />
       )}
+      {screen === "setup" && (
+        <SetupScreen
+          setup={session.setup}
+          review={session.review}
+          dispatch={dispatch}
+          onUseImage={() => setScreen("input")}
+          onStart={(fen) => {
+            setStartFen(fen);
+            setScreen("game");
+          }}
+        />
+      )}
+      {screen === "game" && <GameScreen key={startFen} startFen={startFen} onEdit={() => setScreen("setup")} />}
     </>
   );
 }

@@ -6,8 +6,8 @@
   --vinyl-deep: #163a2c;
   --vinyl-mid: #235240;
   --vinyl-line: #3c6e59;
-  --square-dark: #5f9473;
-  --square-light: #efead2;
+  --square-dark: #769556;
+  --square-light: #eaedd1;
   --buff: #efead2;
   --buff-soft: #bfd0bd;
   --canary: #f8eea3;
@@ -142,6 +142,11 @@ cg-board square.last-move {
 
 cg-board square.check {
   background: radial-gradient(ellipse at center, #e8351c 0%, rgba(232, 53, 28, 0.75) 35%, transparent 80%);
+}
+
+cg-board square.needs-review {
+  box-shadow: inset 0 0 0 4px #e8930c;
+  background-color: rgba(232, 147, 12, 0.3);
 }
 
 cg-board square.needs-fixing {
@@ -651,4 +656,227 @@ legend {
     scroll-behavior: auto;
     transition: none;
   }
+}
+
+/* Choosing an image */
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+}
+
+.input {
+  display: grid;
+  gap: 16px;
+  max-width: 640px;
+  margin-inline: auto;
+  padding: 24px 16px 40px;
+}
+
+.input__title {
+  font-size: clamp(2.5rem, 9vw, 4rem);
+  line-height: 1;
+}
+
+.input__note {
+  font-size: 0.875rem;
+  color: var(--buff-soft);
+  max-width: 56ch;
+}
+
+.input__problem {
+  font-weight: 500;
+  color: var(--flag);
+  max-width: 56ch;
+}
+
+/* The drop area is itself a board, waiting for its position. */
+.dropzone {
+  display: grid;
+  gap: 16px;
+  align-content: center;
+  justify-items: center;
+  aspect-ratio: 4 / 3;
+  padding: 24px;
+  text-align: center;
+  background-color: var(--vinyl-mid);
+  background-image: repeating-conic-gradient(var(--vinyl-mid) 0 25%, #1c4636 0 50%);
+  background-size: 25% 33.34%;
+  border: 2px solid var(--vinyl-line);
+  border-radius: 3px;
+}
+
+.dropzone--active {
+  border-color: var(--canary);
+  outline: 2px solid var(--canary);
+}
+
+.dropzone__actions {
+  display: grid;
+  gap: 8px;
+  width: min(100%, 280px);
+}
+
+button.on-board {
+  background: var(--vinyl-deep);
+}
+
+.dropzone__hint {
+  max-width: 34ch;
+  padding: 2px 8px;
+  font-size: 0.875rem;
+  background: var(--vinyl-deep);
+}
+
+.text-button {
+  justify-self: start;
+  min-height: 44px;
+  padding: 8px 0;
+  text-decoration: underline;
+  background: none;
+  border: 0;
+}
+
+.text-button:hover:not(:disabled) {
+  background: none;
+  color: var(--canary);
+}
+
+.reading {
+  display: grid;
+  gap: 12px;
+}
+
+.reading__image {
+  display: block;
+  width: 100%;
+  max-height: 55vh;
+  object-fit: contain;
+  background: #0f2a20;
+}
+
+.reading__status {
+  font-size: 1.125rem;
+  font-weight: 500;
+}
+
+.reading__bar {
+  height: 4px;
+  background: linear-gradient(90deg, transparent, var(--canary), transparent);
+  background-size: 40% 100%;
+  background-repeat: no-repeat;
+  animation: reading 1.2s linear infinite;
+}
+
+@keyframes reading {
+  from {
+    background-position: -60% 0;
+  }
+  to {
+    background-position: 160% 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reading__bar {
+    animation: none;
+    background: var(--canary);
+  }
+}
+
+.camera {
+  display: grid;
+  gap: 12px;
+}
+
+.camera__video {
+  width: 100%;
+  max-height: 70vh;
+  background: #0f2a20;
+}
+
+.camera__problem {
+  font-weight: 500;
+  color: var(--flag);
+}
+
+/* Checking what was read */
+.review {
+  display: grid;
+  gap: 12px;
+}
+
+.review__preview {
+  display: grid;
+  gap: 4px;
+  width: min(100%, 220px);
+  margin: 0;
+}
+
+.review__preview img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 1;
+}
+
+.review__preview figcaption,
+.review__summary {
+  font-size: 0.875rem;
+  color: var(--buff-soft);
+}
+
+.flags {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.flag {
+  display: grid;
+  gap: 8px;
+  padding: 10px 12px;
+  border-left: 4px solid #e8930c;
+  background: var(--vinyl-mid);
+}
+
+.flag__reading {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 500;
+}
+
+.flag__reading .piece-image {
+  width: 32px;
+  background: var(--square-light);
+  border-radius: 2px;
+}
+
+.flag__square {
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.flag__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.readings {
+  display: grid;
+  gap: 2px;
+  margin: 8px 0 0;
+  padding: 0;
+  font-size: 0.875rem;
+  list-style: none;
+}
+
+.readings li {
+  display: grid;
+  grid-template-columns: 2.5rem 1fr auto;
 }

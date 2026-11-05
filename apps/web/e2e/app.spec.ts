@@ -1,18 +1,7 @@
 import { expect, test, type Page } from "@playwright/test";
+import { pieces } from "./helpers";
 
 const isPhone = (page: Page) => (page.viewportSize()?.width ?? 1000) < 600;
-
-/** Every piece on the board, read from Chessground's DOM, as e.g. "e1" -> "white king". */
-async function pieces(page: Page): Promise<Map<string, string>> {
-  const list = await page.evaluate(() =>
-    [...document.querySelectorAll("cg-board piece:not(.ghost)")].map((element) => {
-      const piece = element as HTMLElement & { cgKey?: string };
-      const name = piece.className.replace(/\b(anim|fading|dragging)\b/g, "").trim();
-      return [piece.cgKey ?? "", name];
-    }),
-  );
-  return new Map(list as [string, string][]);
-}
 
 /** The centre of a square on screen, respecting which way the board faces. */
 async function squareCentre(page: Page, square: string) {
@@ -75,6 +64,7 @@ test.beforeEach(async ({ page }) => {
   });
   page.on("pageerror", (error) => consoleErrors.push(String(error)));
   await page.goto("/");
+  await page.getByRole("button", { name: "Arrange a position by hand" }).click();
   await expect(page.locator("cg-board")).toBeVisible();
 });
 
@@ -171,7 +161,7 @@ test.describe("editing a position", () => {
   test("squares behind a blocking problem are highlighted", async ({ page }) => {
     await page.getByRole("button", { name: "Place white king" }).click();
     await tap(page, "a4");
-    await expect(page.locator("cg-board square.needs-fixing")).toHaveCount(2);
+    await expect(page.locator("cg-board square.needs-fixing:visible")).toHaveCount(2);
     await expect(page.getByText("White has 2 kings. Remove all but one.")).toBeVisible();
   });
 
@@ -280,8 +270,6 @@ test.describe("playing from a position", () => {
     await startFrom(page, "7k/5Q2/6K1/8/8/8/8/8 b - - 0 1");
     await expect(status(page)).toHaveText("Stalemate. It's a draw.");
     await page.getByRole("button", { name: "Edit position" }).click();
-    await page.getByLabel("FEN", { exact: true }).waitFor({ state: "attached" });
-    await page.getByLabel("FEN", { exact: true }).evaluate((input) => input.closest("details")?.removeAttribute("open"));
     await startFrom(page, "8/8/8/4k3/8/4K3/8/8 w - - 0 1");
     await expect(status(page)).toHaveText("Draw: not enough pieces left to checkmate.");
   });

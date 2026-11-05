@@ -12,10 +12,13 @@ import {
   type PositionSetup,
 } from "../chess/position";
 import { forcedSideToMove, hasBlockingIssue, validatePosition } from "../chess/validate";
-import { normaliseSetup, resolveSetup, type SetupAction } from "../setup/setupState";
+import { unresolvedCount, type ReviewState } from "../recognition/review";
+import type { SessionAction } from "../setup/sessionState";
+import { normaliseSetup, resolveSetup } from "../setup/setupState";
 import { Board } from "./Board";
 import { IssueList } from "./IssueList";
 import { PIECE_INFO, PieceImage } from "./pieces";
+import { ReviewPanel } from "./ReviewPanel";
 
 type Tool = PieceCode | "erase" | null;
 
@@ -35,12 +38,16 @@ function parseCounter(text: string): number {
 
 export function SetupScreen({
   setup,
+  review = null,
   dispatch,
   onStart,
+  onUseImage,
 }: {
   setup: PositionSetup;
-  dispatch: Dispatch<SetupAction>;
+  review?: ReviewState | null;
+  dispatch: Dispatch<SessionAction>;
   onStart: (fen: string) => void;
+  onUseImage?: () => void;
 }) {
   const [tool, setTool] = useState<Tool>(null);
   const [fenDraft, setFenDraft] = useState("");
@@ -49,19 +56,21 @@ export function SetupScreen({
   const resolved = useMemo(() => resolveSetup(setup), [setup]);
   const issues = useMemo(() => validatePosition(resolved), [resolved]);
   const forcedSide = useMemo(() => forcedSideToMove(setup.placement), [setup.placement]);
-  const blocked = hasBlockingIssue(issues);
+  const unresolved = unresolvedCount(review);
+  const blocked = hasBlockingIssue(issues) || unresolved > 0;
   const side = resolved.sideToMove;
   const epOptions = side ? enPassantOptions(setup.placement, side) : [];
 
   const highlights = useMemo(() => {
     const squares = new Map<Square, string>();
+    for (const square of review?.flagged.keys() ?? []) squares.set(square, "needs-review");
     for (const issue of issues) {
       if (issue.severity === "blocking") {
         for (const square of issue.squares) squares.set(square, "needs-fixing");
       }
     }
     return squares;
-  }, [issues]);
+  }, [issues, review]);
 
   function handleTap(square: Square) {
     if (tool === "erase") dispatch({ type: "remove", square });
@@ -141,11 +150,26 @@ export function SetupScreen({
           <button type="button" onClick={() => dispatch({ type: "rotate" })}>
             Rotate pieces 90°
           </button>
+          <button
+            type="button"
+            onClick={() => {
+              dispatch({ type: "rotate" });
+              dispatch({ type: "rotate" });
+            }}
+          >
+            Turn board around
+          </button>
+          {onUseImage && (
+            <button type="button" onClick={onUseImage}>
+              Use an image instead
+            </button>
+          )}
         </div>
       </section>
 
       <section className="layout__side panel">
-        <h1>Set up the position</h1>
+        <h1>{review ? "Check the position" : "Set up the position"}</h1>
+        {review && <ReviewPanel review={review} dispatch={dispatch} />}
         <p className="lede">
           A board can't show whose turn it is or what happened earlier in the game, so check these before
           you play.
@@ -271,6 +295,12 @@ export function SetupScreen({
         </details>
 
         <IssueList issues={issues} />
+        {unresolved > 0 && (
+          <p className="issue issue--blocking">
+            {unresolved === 1 ? "1 thing still needs" : `${unresolved} things still need`} checking above. Fix or
+            confirm {unresolved === 1 ? "it" : "them"} to start.
+          </p>
+        )}
 
         {!blocked && side && <p className="fen">{toFen(resolved)}</p>}
 

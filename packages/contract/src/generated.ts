@@ -154,16 +154,16 @@ export type Status1 = "error";
 
 export interface RecognitionSuccess {
   board: BoardLocation;
-  contract_version?: ContractVersion;
+  contract_version: ContractVersion;
   engine: EngineInfo;
-  issues?: Issues;
+  issues: Issues;
   orientation: Orientation;
   placement: Placement;
-  rectified_preview?: RectifiedPreview;
+  rectified_preview: RectifiedPreview;
   source_kind: SourceKind;
   squares: Squares1;
-  status?: Status;
-  timings_ms?: TimingsMs;
+  status: Status;
+  timings_ms: TimingsMs;
 }
 export interface BoardLocation {
   confidence: Confidence;
@@ -187,7 +187,7 @@ export interface PositionIssue {
   code: Code;
   message: Message;
   severity: Severity;
-  squares?: Squares;
+  squares: Squares;
 }
 export interface Orientation {
   confidence: Confidence1;
@@ -199,11 +199,11 @@ export interface Orientation {
  * The prediction for one square, named by its true board coordinate.
  */
 export interface SquareResult {
-  alternatives?: Alternatives;
+  alternatives: Alternatives;
   confidence: Confidence2;
   label: Label1;
   needs_review: NeedsReview1;
-  review_reasons?: ReviewReasons;
+  review_reasons: ReviewReasons;
   square: Square;
 }
 export interface LabelProbability {
@@ -217,10 +217,10 @@ export interface TimingsMs {
  * Recognition could not produce a board. The user can always retry or arrange it by hand.
  */
 export interface RecognitionFailure {
-  board_candidates?: BoardCandidates;
+  board_candidates: BoardCandidates;
   code: Code1;
-  contract_version?: ContractVersion1;
+  contract_version: ContractVersion1;
   message: Message1;
   retryable: Retryable;
-  status?: Status1;
+  status: Status1;
 }

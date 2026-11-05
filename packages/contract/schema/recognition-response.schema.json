@@ -188,6 +188,7 @@
       "required": [
         "code",
         "severity",
+        "squares",
         "message"
       ],
       "title": "PositionIssue",
@@ -244,9 +245,12 @@
         }
       },
       "required": [
+        "contract_version",
+        "status",
         "code",
         "message",
-        "retryable"
+        "retryable",
+        "board_candidates"
       ],
       "title": "RecognitionFailure",
       "type": "object"
@@ -327,12 +331,17 @@
         }
       },
       "required": [
+        "contract_version",
+        "status",
         "source_kind",
         "board",
         "orientation",
         "placement",
         "squares",
-        "engine"
+        "issues",
+        "rectified_preview",
+        "engine",
+        "timings_ms"
       ],
       "title": "RecognitionSuccess",
       "type": "object"
@@ -401,7 +410,9 @@
         "square",
         "label",
         "confidence",
-        "needs_review"
+        "alternatives",
+        "needs_review",
+        "review_reasons"
       ],
       "title": "SquareResult",
       "type": "object"

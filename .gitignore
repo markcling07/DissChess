@@ -24,13 +24,17 @@ corpus/*
 corpus/example/*
 !corpus/example/manifest.example.jsonl
 
-# Model weights are distributed separately from the source tree
+# Training checkpoints stay local. The small exported models the service runs are committed.
 *.onnx
 *.pt
 *.pth
+!services/vision/src/ptc_vision/models/*.onnx
 
 # OS and editor
 .DS_Store
 Thumbs.db
 .vscode/
 .idea/
+
+# Downloaded artwork and generated training data
+ml/data/

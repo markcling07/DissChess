@@ -3,7 +3,7 @@ import type { Square } from "chess.js";
 import { useReducer } from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { emptySetup, parseFen, standardSetup, type PositionSetup } from "../chess/position";
-import { setupReducer } from "../setup/setupState";
+import { sessionReducer } from "../setup/sessionState";
 import type { BoardProps } from "./Board";
 import { GameScreen } from "./GameScreen";
 import { SetupScreen } from "./SetupScreen";
@@ -18,8 +18,8 @@ vi.mock("./Board", () => ({
 }));
 
 function Setup({ initial, onStart }: { initial: PositionSetup; onStart: (fen: string) => void }) {
-  const [setup, dispatch] = useReducer(setupReducer, initial);
-  return <SetupScreen setup={setup} dispatch={dispatch} onStart={onStart} />;
+  const [session, dispatch] = useReducer(sessionReducer, { setup: initial, review: null });
+  return <SetupScreen setup={session.setup} review={session.review} dispatch={dispatch} onStart={onStart} />;
 }
 
 function button(name: string | RegExp) {

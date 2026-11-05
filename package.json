@@ -7,6 +7,7 @@
     "setup:python": "node scripts/setup-python.mjs",
     "contract:generate": "node scripts/generate-contract.mjs",
     "verify": "node scripts/verify.mjs",
-    "eval": "node scripts/run-python.mjs -m ptc_eval"
+    "eval": "node scripts/run-python.mjs -m ptc_eval",
+    "service": "node scripts/run-python.mjs -m uvicorn --factory ptc_vision.api:create_app --host 127.0.0.1 --port 8000"
   }
 }

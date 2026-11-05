@@ -1,0 +1,99 @@
+{
+  "version": "20261105",
+  "labels": [
+    "empty",
+    "P",
+    "N",
+    "B",
+    "R",
+    "Q",
+    "K",
+    "p",
+    "n",
+    "b",
+    "r",
+    "q",
+    "k"
+  ],
+  "tile_size": 40,
+  "temperature": 0.540047824382782,
+  "review_threshold": 0.9971436692237854,
+  "parameters": 422261,
+  "trained_on": {
+    "cburnett": "GPL-2.0-or-later",
+    "merida": "GPL-2.0-or-later",
+    "pirouetti": "AGPL-3.0-or-later",
+    "pixel": "AGPL-3.0-or-later",
+    "rhosgfx": "CC0-1.0",
+    "fantasy": "MIT",
+    "spatial": "MIT",
+    "mpchess": "GPL-3.0-or-later",
+    "totoy": "CC-BY-4.0",
+    "papercut": "CC-BY-4.0",
+    "firi": "CC-BY-4.0"
+  },
+  "calibrated_on": {
+    "chessnut": "Apache-2.0",
+    "celtic": "MIT"
+  },
+  "training_tiles": 259798,
+  "calibration_accuracy": 0.9963613748550415,
+  "threshold_stats": {
+    "errors": 94,
+    "error_recall": 0.978723406791687,
+    "flag_rate": 0.030463729053735733
+  },
+  "best_epoch": 7,
+  "history": [
+    {
+      "epoch": 1,
+      "calibration_accuracy": 0.9759619235992432,
+      "loss": 0.10820887982845306
+    },
+    {
+      "epoch": 2,
+      "calibration_accuracy": 0.9888905882835388,
+      "loss": 0.11670619249343872
+    },
+    {
+      "epoch": 3,
+      "calibration_accuracy": 0.9862584471702576,
+      "loss": 0.08858931809663773
+    },
+    {
+      "epoch": 4,
+      "calibration_accuracy": 0.9893164038658142,
+      "loss": 0.07540237903594971
+    },
+    {
+      "epoch": 5,
+      "calibration_accuracy": 0.9878454804420471,
+      "loss": 0.07946781069040298
+    },
+    {
+      "epoch": 6,
+      "calibration_accuracy": 0.9949678778648376,
+      "loss": 0.055746544152498245
+    },
+    {
+      "epoch": 7,
+      "calibration_accuracy": 0.9963613748550415,
+      "loss": 0.049954209476709366
+    },
+    {
+      "epoch": 8,
+      "calibration_accuracy": 0.9903615117073059,
+      "loss": 0.06842296570539474
+    },
+    {
+      "epoch": 9,
+      "calibration_accuracy": 0.9892002940177917,
+      "loss": 0.07450152933597565
+    },
+    {
+      "epoch": 10,
+      "calibration_accuracy": 0.9903228282928467,
+      "loss": 0.0690670758485794
+    }
+  ]
+}

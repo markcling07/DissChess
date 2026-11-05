@@ -47,7 +47,12 @@ FailureCode = Literal[
 
 
 class _Model(BaseModel):
-    model_config = ConfigDict(extra="forbid", frozen=True)
+    model_config = ConfigDict(
+        extra="forbid",
+        frozen=True,
+        # Replies always include every field, so generated client types can rely on them.
+        json_schema_serialization_defaults_required=True,
+    )
 
 
 class LabelProbability(_Model):

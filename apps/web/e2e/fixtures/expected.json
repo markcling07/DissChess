@@ -1,0 +1,31 @@
+{
+  "midgame.png": {
+    "placement": "r1bq1rk1/pp2bppp/2n1pn2/3p4/3P4/2NBPN2/PP3PPP/R1BQ1RK1",
+    "flipped": false
+  },
+  "start.png": {
+    "placement": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR",
+    "flipped": false
+  },
+  "flipped.jpg": {
+    "placement": "r1bqk2r/pppp1ppp/2n2n2/2b1p3/2B1P3/2N2N2/PPPP1PPP/R1BQK2R",
+    "flipped": true
+  },
+  "endgame.webp": {
+    "placement": "8/5k2/8/8/3K4/8/4P3/8",
+    "flipped": false
+  },
+  "on-page.png": {
+    "placement": "r1bqk2r/pppp1ppp/2n2n2/2b1p3/2B1P3/2N2N2/PPPP1PPP/R1BQK2R",
+    "flipped": false
+  },
+  "no-board.png": {
+    "failure": "no_board_detected"
+  },
+  "two-boards.png": {
+    "failure": "multiple_boards_detected"
+  },
+  "cut-off.png": {
+    "failure": "board_incomplete"
+  }
+}

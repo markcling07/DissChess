@@ -9,6 +9,8 @@
 | Recognition location | Server-side, using CPU inference | Follows the Python and OpenCV stack and avoids slow phones. ONNX models leave on-device recognition open for later |
 | Training | Colab or Kaggle notebooks run by the project owner | No local GPU, and no billing setup. Use a paid GPU if sessions prove too short |
 | Hosting | Static host for the web app and any container host for the service, chosen later | No vendor lock-in |
+| App look | The board colours of the owner's reference screenshot (`#eaedd1` and `#769556`) with Celtic pieces (MIT) | Closest set that can legally ship. The reference pieces look like Chess.com's Neo set, which is probably copyrighted |
+| Recognition training | Licence-clean artwork, with non-commercial and site artwork used for testing only | Trained weights may count as derived from their data |
 | Project location | `C:\dev\photo-to-chess` | OneDrive sync and locks interfere with `node_modules`, `.venv` and model weights |
 
 ## Behaviour the spec leaves open
@@ -26,7 +28,7 @@
 |---|---|---|---|
 | M0 | Repo, API contract, evaluation tool, labelled test image structure | Accuracy can be measured with one command | Done, with no engine or real images to measure yet |
 | M1 | Game core, position editor, validation, manual setup, mobile-first UI, web app manifest | All rules pass tests from any FEN, with no recognition involved | Done. Touch dragging and real phones are still to check in M6 |
-| M2 | Upload, camera, paste, secure intake, screenshot recognition | Target of at least 99.9% per square on themes kept out of training | |
+| M2 | Upload, camera, paste, secure intake, screenshot recognition | Target of at least 99.9% per square on themes kept out of training | Features built. **Target missed: 96.1% on held-out artwork.** 99.9% on calibration artwork. See the model's README |
 | M3 | Photo model comparison: chesscog, a detector mapped through the board's perspective, and a corner model trained on ChessReD2K | A choice backed by numbers, and photo targets reset to what's achievable | |
 | M4 | Photo recognition in production: training, calibration, orientation | Meets the M3 targets on chess sets kept out of training | |
 | M5 | Stockfish play and analysis, with offline caching for both | Works from any reconstructed position | |
@@ -35,6 +37,10 @@
 
 ## Open items
 
+- **M2 accuracy:** needs real screenshots to judge. The numbers so far are synthetic, and only one real screenshot has been tried. Old font-style piece sets are the weakest.
+- **Silently wrong boards:** 6.5% on held-out artwork, or 1.1% on positions from play without the two weakest sets. Reduce this further before calling recognition reliable.
+- **Dragged pieces:** a piece caught mid-drag in a screenshot isn't detected.
+- **Camera:** tested only with a browser's fake camera. It needs HTTPS outside localhost, and it can't read real boards until M4.
 - **Real test photos:** 30–50 labelled photos of chess sets the engine hasn't seen, needed by M3. This is the honest test of photo accuracy.
 - **Licences to confirm before use:** ChessReD, each Roboflow dataset, and FastAPI (not listed on PyPI).
 - **chesscog models:** confirm the pretrained downloads still work.

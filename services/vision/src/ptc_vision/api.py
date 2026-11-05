@@ -1,0 +1,170 @@
+"""The HTTP service. Images are held in memory for one request and never written anywhere.
+
+Run: uvicorn --factory ptc_vision.api:create_app --port 8000
+"""
+
+import asyncio
+import logging
+import os
+import time
+from collections import defaultdict, deque
+from collections.abc import Awaitable, Callable
+
+from fastapi import FastAPI, Request
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse, Response
+
+from ptc_vision.contract import FailureCode, RecognitionFailure, RecognitionSuccess
+from ptc_vision.engine import make_recognizer
+from ptc_vision.intake import MAX_FILE_BYTES
+from ptc_vision.recognizer import Recognizer
+
+logger = logging.getLogger("ptc_vision.api")
+
+MAX_CONCURRENT = 2
+TIMEOUT_SECONDS = 20.0
+RATE_LIMIT_REQUESTS = 30
+RATE_LIMIT_WINDOW_SECONDS = 60.0
+
+STATUS_BY_CODE: dict[FailureCode, int] = {
+    "unsupported_media_type": 415,
+    "file_too_large": 413,
+    "image_too_large": 413,
+    "image_unreadable": 400,
+    "no_board_detected": 422,
+    "multiple_boards_detected": 422,
+    "image_too_blurry": 422,
+    "board_incomplete": 422,
+    "recognition_timeout": 504,
+    "internal_error": 500,
+}
+
+
+def _failure_response(failure: RecognitionFailure) -> JSONResponse:
+    return JSONResponse(
+        failure.model_dump(mode="json"), status_code=STATUS_BY_CODE.get(failure.code, 500)
+    )
+
+
+class RateLimiter:
+    """A sliding window per client, held in memory. Behind several workers each counts alone."""
+
+    def __init__(
+        self,
+        limit: int = RATE_LIMIT_REQUESTS,
+        window: float = RATE_LIMIT_WINDOW_SECONDS,
+        clock: Callable[[], float] = time.monotonic,
+    ):
+        self.limit = limit
+        self.window = window
+        self.clock = clock
+        self._hits: defaultdict[str, deque[float]] = defaultdict(deque)
+
+    def allow(self, client: str) -> bool:
+        now = self.clock()
+        hits = self._hits[client]
+        while hits and now - hits[0] > self.window:
+            hits.popleft()
+        if len(hits) >= self.limit:
+            return False
+        hits.append(now)
+        if len(self._hits) > 10_000:
+            self._hits = defaultdict(deque, {k: v for k, v in self._hits.items() if v})
+        return True
+
+
+def create_app(
+    recognizer_factory: Callable[[], Recognizer] = make_recognizer,
+    rate_limiter: RateLimiter | None = None,
+    timeout_seconds: float = TIMEOUT_SECONDS,
+) -> FastAPI:
+    app = FastAPI(title="Photo to Chess recognition", docs_url=None, redoc_url=None)
+    limiter = rate_limiter or RateLimiter()
+    slots = asyncio.Semaphore(MAX_CONCURRENT)
+    recognizer = recognizer_factory()
+
+    origins = [o for o in os.environ.get("PTC_ALLOWED_ORIGINS", "").split(",") if o]
+    if origins:
+        app.add_middleware(
+            CORSMiddleware,
+            allow_origins=origins,
+            allow_methods=["POST"],
+            allow_headers=["Content-Type"],
+        )
+
+    @app.middleware("http")
+    async def security_headers(
+        request: Request, call_next: Callable[[Request], Awaitable[Response]]
+    ) -> Response:
+        response = await call_next(request)
+        response.headers["X-Content-Type-Options"] = "nosniff"
+        response.headers["Cache-Control"] = "no-store"
+        return response
+
+    @app.get("/healthz")
+    async def health() -> dict[str, str]:
+        return {"status": "ok"}
+
+    @app.post(
+        "/api/v1/recognize",
+        response_model=RecognitionSuccess | RecognitionFailure,
+        responses={code: {"model": RecognitionFailure} for code in set(STATUS_BY_CODE.values())},
+    )
+    async def recognize(request: Request) -> Response:
+        client = request.client.host if request.client else "unknown"
+        if not limiter.allow(client):
+            return JSONResponse(
+                RecognitionFailure(
+                    code="internal_error",
+                    message="Too many images in a short time. Wait a minute and try again.",
+                    retryable=True,
+                ).model_dump(mode="json"),
+                status_code=429,
+                headers={"Retry-After": str(round(limiter.window))},
+            )
+
+        # Read as a stream so an oversized upload is refused without being held in full.
+        body = bytearray()
+        async for chunk in request.stream():
+            body.extend(chunk)
+            if len(body) > MAX_FILE_BYTES:
+                return _failure_response(
+                    RecognitionFailure(
+                        code="file_too_large",
+                        message=f"The image is over {MAX_FILE_BYTES // 1024 // 1024} MB. "
+                        "Use a smaller one.",
+                        retryable=True,
+                    )
+                )
+
+        try:
+            async with slots:
+                # A worker thread, so a slow image doesn't hold up other requests.
+                result = await asyncio.wait_for(
+                    asyncio.to_thread(recognizer.recognize, bytes(body)), timeout_seconds
+                )
+        except TimeoutError:
+            return _failure_response(
+                RecognitionFailure(
+                    code="recognition_timeout",
+                    message="This image took too long to read. Try a smaller one.",
+                    retryable=True,
+                )
+            )
+        except Exception:
+            # The cause goes in the log, and the image and internal details stay out of the reply.
+            logger.exception("Recognition failed")
+            return _failure_response(
+                RecognitionFailure(
+                    code="internal_error",
+                    message="Something went wrong reading this image. Try again, or arrange the "
+                    "position by hand.",
+                    retryable=True,
+                )
+            )
+
+        if isinstance(result, RecognitionFailure):
+            return _failure_response(result)
+        return JSONResponse(result.model_dump(mode="json"))
+
+    return app

@@ -29,3 +29,14 @@ The trained model in `services/vision/src/ptc_vision/models` may count as derive
 Board textures from the same repository are by the lila authors and pirouetti, under AGPL-3.0-or-later. The model was calibrated on chessnut (Alexis Luengas, Apache-2.0) and celtic (Maurizio Monge, MIT), but not trained on them.
 
 Other sets are used only to measure accuracy. They aren't committed, trained on or shipped.
+
+## Photo experiments
+
+Used in the M3 comparison. None of this is committed or shipped.
+
+| Material | Used for | Author | Licence |
+|---|---|---|---|
+| ChessReD2K | Testing only, never trained on | Masouris and van Gemert | CC BY-NC-SA 4.0 |
+| Chesscog code and models | Baseline for comparison | Georg Wölflein | MIT |
+| Chesscog rendered dataset | Training the detectors | Georg Wölflein and Ognjen Arandjelović | CC BY 4.0 |
+| Ultralytics YOLO11n | Detector code and starting weights | Ultralytics | AGPL-3.0 |

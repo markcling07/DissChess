@@ -16,5 +16,8 @@ dev = ["pytest>=9,<10", "ruff>=0.17,<0.18", "chess>=1.11,<2"]
 # Torch comes from https://download.pytorch.org/whl/cpu. See setup-python.mjs.
 train = ["torch>=2.15", "onnx>=1.23", "onnxscript"]
 
+# The M3 photo comparison. Chesscog itself is fetched separately. See docs/photo-comparison.md.
+photo = ["torch>=2.15", "torchvision", "ultralytics>=8.4,<9", "scikit-learn", "matplotlib", "yacs"]
+
 [tool.setuptools.packages.find]
 where = ["src"]

@@ -30,7 +30,7 @@
 | M0 | Repo, API contract, evaluation tool, labelled test image structure | Accuracy can be measured with one command | Done, with no engine or real images to measure yet |
 | M1 | Game core, position editor, validation, manual setup, mobile-first UI, web app manifest | All rules pass tests from any FEN, with no recognition involved | Done. Touch dragging and real phones are still to check in M6 |
 | M2 | Upload, camera, paste, secure intake, screenshot recognition | Target of at least 99.9% per square on themes kept out of training | Features built. **Target missed: 96.1% on held-out artwork.** 99.9% on calibration artwork. See the model's README |
-| M3 | Photo model comparison: chesscog, a detector mapped through the board's perspective, and a corner model trained on ChessReD2K | A choice backed by numbers, and photo targets reset to what's achievable | |
+| M3 | Photo model comparison: chesscog and a detector mapped through the board's perspective, tested on ChessReD2K | A choice backed by numbers, and photo targets reset to what's achievable | Comparison run. **Neither is usable: no held-out board was read perfectly.** Choice and targets still to decide. See [the results](photo-comparison.md) |
 | M4 | Photo recognition in production: training, calibration, orientation | Meets the M3 targets on chess sets kept out of training | |
 | M5 | Stockfish play and analysis, with offline caching for both | Works from any reconstructed position | Done, using the 1.9 MB Lite build. Real phones are still to check in M6 |
 | M6 | Full error handling, service worker and install prompts, responsive UI, full test list, deployment docs | Every error case in the spec has a test, and it has been tried on real phones | |
@@ -46,9 +46,8 @@
 - **Service worker updates:** old built files stay in the cache until its version changes. Add clean-up and an update prompt in M6.
 - **Dragged pieces:** a piece caught mid-drag in a screenshot isn't detected.
 - **Camera:** tested only with a browser's fake camera. It needs HTTPS outside localhost, and it can't read real boards until M4.
-- **Real test photos:** 30–50 labelled photos of chess sets the engine hasn't seen, needed by M3. This is the honest test of photo accuracy.
-- **Licences to confirm before use:** ChessReD, each Roboflow dataset, and FastAPI (not listed on PyPI).
-- **chesscog models:** confirm the pretrained downloads still work.
+- **Real test photos:** 30–50 labelled photos of chess sets the engine hasn't seen. All M3 test photos show one chess set, so accuracy on other sets is still unknown.
+- **Licences to confirm before use:** each Roboflow dataset, and FastAPI (not listed on PyPI). ChessReD is CC BY-NC-SA 4.0, so it's for testing only and is never trained on.
 - **Docker:** not installed on the development machine, so Dockerfiles can't be tested there.
 - **Keyboard play:** Chessground has no keyboard control of the board. The controls around it work by keyboard, but moving pieces doesn't. Address this in M6.
 - **Touch dragging:** browser tests cover tapping on a phone and dragging with a mouse, but not dragging by touch. Try it on real phones in M6.

@@ -30,9 +30,11 @@ export function MoveImages({
   orientation: Color;
   onClose: () => void;
 }) {
-  const [start, setStart] = useState(() =>
+  const [chosenStart, setStart] = useState(() =>
     defaultClipStart(moves, review, Math.min(DEFAULT_COUNT, moves.length)),
   );
+  // Undo can take away the move the clip started from, so it's kept within the moves there are.
+  const start = Math.max(0, Math.min(chosenStart, moves.length - 1));
   const available = Math.max(1, Math.min(MAX_CLIP_MOVES, moves.length - start));
   const [wanted, setWanted] = useState(DEFAULT_COUNT);
   const count = Math.min(wanted, available);
@@ -68,7 +70,7 @@ export function MoveImages({
   }
 
   async function save() {
-    if (!made) return;
+    if (!made || made.files.length === 0) return;
     const outcome = await saveImages(made.files);
     if (outcome === "downloaded") {
       setMessage({ text: "Downloaded. On a computer, they're in your Downloads folder.", isError: false });

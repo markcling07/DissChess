@@ -188,6 +188,12 @@ export function judgeMove(before: Score, after: Score, mover: Color): MoveQualit
  */
 const SACRIFICE_SLACK = 2;
 const NOISE_SLACK = 5;
+/**
+ * Above this chance of winning, about four pawns up, the win chance barely moves, so giving material
+ * away looks free even when it isn't. Sacrifices from there aren't judged, except one that keeps the
+ * engine's fastest mate.
+ */
+const ALREADY_WON = 90;
 /** Material a move must give up, after the reply, to count as a sacrifice: more than a pawn. */
 const SACRIFICE_POINTS = 2;
 
@@ -211,8 +217,10 @@ export function looksBrilliant(
   const mover = chess.turn();
   const direction = mover === "w" ? 1 : -1;
   const lost = direction * (winPercent(before) - winPercent(after));
-  const moverChance = mover === "w" ? winPercent(after) : 100 - winPercent(after);
-  if (lost >= NOISE_SLACK || moverChance < 50) return false;
+  const moverChance = (score: Score) => (mover === "w" ? winPercent(score) : 100 - winPercent(score));
+  if (lost >= NOISE_SLACK || moverChance(after) < 50) return false;
+  const mating = before.kind === "mate" && direction * before.value > 0;
+  if (!mating && moverChance(before) > ALREADY_WON) return false;
 
   const start = materialFor(chess, mover);
   let uci: string;
@@ -223,6 +231,14 @@ export function looksBrilliant(
     return false;
   }
   if (uci !== engineBest && lost > SACRIFICE_SLACK) return false;
+  if (mating) {
+    const keepsMate =
+      uci === engineBest &&
+      after.kind === "mate" &&
+      direction * after.value > 0 &&
+      Math.abs(after.value) <= Math.abs(before.value);
+    if (!keepsMate) return false;
+  }
   // Checked after each of the other side's replies, up to two, so a trade that wins the piece
   // straight back isn't counted.
   let checked = 0;

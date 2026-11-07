@@ -196,6 +196,19 @@ describe("spotting brilliant moves", () => {
     expect(looksBrilliant(GREEK_GIFT, "Bxh7+", cp(60), cp(-250), TAKEN)).toBe(false);
   });
 
+  it("doesn't call giving material away brilliant when the game was already won", () => {
+    // Qd2 just hands a queen to the bishop, and White still mates with the other queen.
+    const won = "6k1/5ppp/8/7Q/8/2b5/5PPP/R2Q2K1 w - - 0 1";
+    expect(looksBrilliant(won, "Qd2", mate(6), mate(8), ["c3d2"], "h5e8")).toBe(false);
+    expect(looksBrilliant(won, "Qd2", cp(1500), cp(1200), ["c3d2"], "d1d2")).toBe(false);
+    expect(looksBrilliant(won, "Qd2", mate(6), mate(6), ["c3d2"], "h5e8")).toBe(false);
+  });
+
+  it("still calls a sacrifice that keeps the fastest mate brilliant", () => {
+    expect(looksBrilliant(GREEK_GIFT, "Bxh7+", mate(5), mate(4), TAKEN, "d3h7")).toBe(true);
+    expect(looksBrilliant(GREEK_GIFT, "Bxh7+", mate(5), mate(7), TAKEN, "d3h7")).toBe(false);
+  });
+
   it("doesn't count material won straight back", () => {
     // Bxf6 Nxf6 gives a bishop for a knight: even.
     const fen = "r1bqkb1r/pppp1ppp/2n2n2/4p1B1/4P3/2N5/PPPP1PPP/R2QKBNR w KQkq - 4 4";

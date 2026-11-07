@@ -134,6 +134,27 @@ describe("setup screen", () => {
     });
   });
 
+  it("keeps moves pasted earlier when coming back to edit, if the position is unchanged", () => {
+    const onStart = vi.fn();
+    const start = "rnbqkbnr/pppp1ppp/8/4p3/4P3/5N2/PPPP1PPP/RNBQKB1R b KQkq - 1 2";
+    const moves = { startFen: "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1", sans: ["e4", "e5", "Nf3"] };
+    function Returning() {
+      const [session, dispatch] = useReducer(sessionReducer, undefined, () => ({ setup: parseFen(start), review: null }));
+      return (
+        <SetupScreen
+          setup={session.setup}
+          review={session.review}
+          dispatch={dispatch}
+          onStart={onStart}
+          lastStart={{ fen: start, moves }}
+        />
+      );
+    }
+    render(<Returning />);
+    fireEvent.click(button("Start game"));
+    expect(onStart).toHaveBeenLastCalledWith(expect.stringMatching(/^rnbqkbnr\/pppp1ppp/), moves);
+  });
+
   it("names the move that can't be played, and keeps the current position", () => {
     render(<Setup initial={standardSetup()} onStart={vi.fn()} />);
     fireEvent.change(screen.getByLabelText("Moves"), { target: { value: "1. e4 e5 2. Ke3" } });
@@ -229,5 +250,25 @@ describe("game screen", () => {
     fireEvent.click(button("Flip board"));
     expect(board.orientation).toBe("b");
     expect(screen.getByRole("status").textContent).toBe("White to move.");
+  });
+});
+
+describe("saving moves as pictures", () => {
+  const START = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+  const pasted = { startFen: START, sans: ["c4", "e5", "Nc3"] };
+  const afterPasted = "rnbqkbnr/pppp1ppp/8/4p3/2P5/2N5/PP1PPPPP/R1BQKBNR b KQkq - 1 2";
+
+  it("keeps the first move within the game after moves are undone", () => {
+    render(<GameScreen startFen={afterPasted} pasted={pasted} onEdit={vi.fn()} />);
+    fireEvent.click(screen.getByRole("button", { name: "Save moves as pictures" }));
+    const from = screen.getByLabelText("From move") as HTMLSelectElement;
+    fireEvent.change(from, { target: { value: "2" } });
+    expect(screen.getByRole("button", { name: "Make 1 picture" })).toBeTruthy();
+
+    fireEvent.click(screen.getByRole("button", { name: "Undo" }));
+    fireEvent.click(screen.getByRole("button", { name: "Undo" }));
+    expect(from.value).toBe("0");
+    expect(from.selectedOptions[0]?.textContent).toBe("1. c4");
+    expect(screen.getByRole("button", { name: "Make 1 picture" })).toBeTruthy();
   });
 });

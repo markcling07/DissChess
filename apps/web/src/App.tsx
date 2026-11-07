@@ -38,6 +38,7 @@ export function App() {
           review={session.review}
           dispatch={dispatch}
           onUseImage={() => setScreen("input")}
+          lastStart={start}
           onStart={(fen, moves) => {
             setStart({ fen, moves });
             setScreen("game");

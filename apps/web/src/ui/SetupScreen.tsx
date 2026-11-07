@@ -54,6 +54,7 @@ export function SetupScreen({
   dispatch,
   onStart,
   onUseImage,
+  lastStart,
 }: {
   setup: PositionSetup;
   review?: ReviewState | null;
@@ -61,13 +62,20 @@ export function SetupScreen({
   /** Moves come along when the position is the one a pasted move list reached, unchanged since. */
   onStart: (fen: string, moves?: PastedMoves) => void;
   onUseImage?: () => void;
+  /**
+   * The game this screen last started, so its pasted moves survive a trip back here to edit. They
+   * still only carry over if the position is left as it was.
+   */
+  lastStart?: { fen: string; moves?: PastedMoves };
 }) {
   const [tool, setTool] = useState<Tool>(null);
   const [fenDraft, setFenDraft] = useState("");
   const [fenMessage, setFenMessage] = useState<{ text: string; isError: boolean } | null>(null);
   const [movesDraft, setMovesDraft] = useState("");
   const [movesMessage, setMovesMessage] = useState<{ text: string; isError: boolean } | null>(null);
-  const [pasted, setPasted] = useState<{ fen: string; moves: PastedMoves } | null>(null);
+  const [pasted, setPasted] = useState<{ fen: string; moves: PastedMoves } | null>(() =>
+    lastStart?.moves ? { fen: lastStart.fen, moves: lastStart.moves } : null,
+  );
 
   const resolved = useMemo(() => resolveSetup(setup), [setup]);
   const issues = useMemo(() => validatePosition(resolved), [resolved]);

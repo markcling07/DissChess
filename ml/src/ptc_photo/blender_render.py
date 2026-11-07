@@ -538,7 +538,7 @@ def main() -> None:
         scale = rng.uniform(1.5, 2.1) / king_height
         scale = min(scale, 0.85 / max(widest_base, 1e-6))
         # Each type is stretched a little on its own, for more shapes than the sets alone give.
-        # Pawns stay the shortest, as the recogniser's height rule expects.
+        # Pawns stay the shortest, as in real sets.
         stretch = {}
         for kind in TYPES:
             across = min(scale * rng.uniform(0.9, 1.1), 0.85 / max(widest_base, 1e-6))

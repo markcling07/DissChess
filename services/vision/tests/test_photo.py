@@ -28,7 +28,6 @@ INFO = DetectorInfo(
     input_size=640,
     min_confidence=0.25,
     base_fraction=0.05,
-    pawn_height_cut=0.65,
     review_threshold=0.6,
     empty_confidence=0.9,
 )
@@ -167,15 +166,15 @@ def test_whites_side_is_trusted_even_against_the_pieces():
     assert all(issue.code != "orientation_uncertain" for issue in result.issues)
 
 
-def test_a_short_piece_is_called_a_pawn_and_flagged():
-    detections = layout(STARTING_ROWS)
-    # The e2 pawn, misread as a bishop, but no taller than the other pawns.
-    detections = [d for d in detections if d.box[0] != 420 or d.box[3] != 690]
-    detections.append(detection(6, 4, "B", height=HEIGHTS["P"]))
+def test_a_short_rook_stays_a_rook():
+    # Squat rooks are no taller than pawns in many sets, and the detector's type is kept.
+    detections = [d for d in layout(STARTING_ROWS) if d.box[0] != 20 or d.box[3] != 790]
+    detections.append(detection(7, 0, "R", height=HEIGHTS["P"]))
     result = PhotoRecognizer(FakeDetector(detections)).recognize(png(), WHOLE_IMAGE)
-    e2 = next(s for s in result.squares if s.square == "e2")
-    assert e2.label == "P"
-    assert e2.needs_review
+    assert result.placement == START
+    a1 = next(s for s in result.squares if s.square == "a1")
+    assert a1.label == "R"
+    assert not a1.needs_review
 
 
 def test_a_tall_piece_leaning_into_the_next_rank_counts_where_it_stands():

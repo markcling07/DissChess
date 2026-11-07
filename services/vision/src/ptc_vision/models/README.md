@@ -82,7 +82,8 @@ YOLO11n, fine-tuned on Blender renders of eleven CC0 and CC BY 4.0 chess sets mi
 renders. `piece_detector.json` holds its version and the settings `photo.py` uses. It is only used
 when the app is opened with `?photos=1`, because whole boards are still rarely read perfectly.
 
-On 330 development photos from ChessReD2K, with true corners and White's side marked, 5.28% of
-squares are wrong and 95% of wrong squares are flagged. The held-out photos haven't been used yet.
+On 330 development photos from ChessReD2K, with true corners and White's side marked, 1.61% of
+squares are wrong, 40.9% of boards have no errors, and 76% of wrong squares are flagged. The
+held-out photos haven't been used yet.
 Credits and results are in `docs/third-party.md` and `docs/photo-comparison.md`, and
 `ml/scripts/train_many_sets.sh` rebuilds it after `python -m ptc_photo.render_many_sets`.

@@ -74,6 +74,13 @@ These figures come from the development photos, using the detector with perfect 
   flagging 7.7% of squares, and boards silently wrong fell to 13.9%. 4.8% of boards were read with
   no errors and 14.8% with at most one. Measured with `make_recognizer_with_white`, which stands in
   for a correct tap.
+- **The pawn height rule is removed.** With `pieces-v2`, 615 of the 1,115 wrong squares were rooks
+  the rule had turned into pawns, as ChessReD's rooks are squat. Without the rule, using the
+  detector's own types, 1.61% of squares are wrong (95% interval 1.43% to 1.82%), 40.9% of boards
+  are read with no errors and 72.7% with at most one. Raising the height cut or sparing rooks did no
+  better than removing the rule. Flags now catch 76.0% of wrong squares while flagging only 1.8%,
+  and 20.0% of boards are silently wrong, mostly from empty squares read as knights. Without
+  White's side marked, 5.36% are wrong, as the direction is right on 83.3% of boards.
 
 ## Reproducing
 

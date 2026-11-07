@@ -4,10 +4,11 @@ Each piece is found as a box, and its base, where it stands on the board, is map
 board's perspective onto a square. Tall pieces lean over neighbouring squares in a photo taken at an
 angle, but their bases don't.
 
-The detector came from rendered training images, which taught it piece positions well but piece
-types less so. Short pieces are therefore called pawns by their height compared with the tallest
-piece in the photo. Results are not yet accurate enough for photos to be offered in the app, and
-confidences are not calibrated. See docs/photo-comparison.md.
+The detector was trained on rendered images of many chess sets, and its piece types are used as
+they come. An earlier rule that called short pieces pawns was removed once the detector learned
+types well, since it turned short rooks into pawns. Results are not yet accurate enough for photos
+to be offered in the app without a switch, and confidences are not calibrated. See
+docs/photo-comparison.md.
 """
 
 import base64
@@ -55,7 +56,6 @@ class DetectorInfo:
     input_size: int
     min_confidence: float
     base_fraction: float
-    pawn_height_cut: float
     review_threshold: float
     empty_confidence: float
 
@@ -145,36 +145,6 @@ class _Found:
     confidence: float
     label: str
     scores: np.ndarray
-    height: float  # in squares, so perspective doesn't change it
-
-
-def _local_square_size(inverse: np.ndarray, u: float, v: float) -> float:
-    around = np.array(
-        [[[u - 0.5, v - 0.5], [u + 0.5, v - 0.5], [u + 0.5, v + 0.5], [u - 0.5, v + 0.5]]],
-        dtype=np.float32,
-    )
-    return math.sqrt(abs(cv2.contourArea(cv2.perspectiveTransform(around, inverse)[0])))
-
-
-def apply_pawn_height_rule(
-    found: dict[tuple[int, int], _Found], cut: float
-) -> set[tuple[int, int]]:
-    """Calls short pieces pawns, at most eight a side. Returns the cells whose label changed."""
-    if not found:
-        return set()
-    tallest = max(item.height for item in found.values())
-    short: dict[bool, list[tuple[float, tuple[int, int]]]] = {True: [], False: []}
-    for cell, item in found.items():
-        if item.height / tallest < cut and item.label.upper() != "K":
-            short[item.label.isupper()].append((item.height / tallest, cell))
-    changed = set()
-    for white, listed in short.items():
-        for _, cell in sorted(listed)[:8]:
-            pawn = "P" if white else "p"
-            if found[cell].label != pawn:
-                found[cell].label = pawn
-                changed.add(cell)
-    return changed
 
 
 def best_rotation(grid: list[list[str]]) -> tuple[int, float, bool]:
@@ -241,7 +211,6 @@ class PhotoRecognizer:
         timings["detect"] = round((time.perf_counter() - started) * 1000, 2) - timings["decode"]
 
         homography = cv2.getPerspectiveTransform(points, GRID)
-        inverse = np.linalg.inv(homography)
         info = self._detector.info
         found: dict[tuple[int, int], _Found] = {}
         for detection in detections:
@@ -261,9 +230,7 @@ class PhotoRecognizer:
                 confidence=confidence,
                 label=info.labels[int(detection.scores.argmax())],
                 scores=detection.scores,
-                height=(y1 - y0) / max(_local_square_size(inverse, u, v), 1.0),
             )
-        changed = apply_pawn_height_rule(found, info.pawn_height_cut)
 
         grid = [
             [
@@ -285,7 +252,7 @@ class PhotoRecognizer:
                 square = _grid_square(row, column, turns)
                 item = found.get((row, column))
                 board[square] = item.label if item else "empty"
-                results[square] = self._square_result(square, item, (row, column) in changed)
+                results[square] = self._square_result(square, item)
 
         issues = check_layout(board)
         for issue in issues:
@@ -333,7 +300,7 @@ class PhotoRecognizer:
             timings_ms=timings,
         )
 
-    def _square_result(self, square: str, item: _Found | None, changed: bool) -> SquareResult:
+    def _square_result(self, square: str, item: _Found | None) -> SquareResult:
         info = self._detector.info
         if item is None:
             return SquareResult(
@@ -356,7 +323,7 @@ class PhotoRecognizer:
         ]
         confidence = min(confidence, 1.0 - sum(a.probability for a in alternatives))
         reasons: list[ReviewReason] = []
-        if confidence < info.review_threshold or changed:
+        if confidence < info.review_threshold:
             reasons.append("low_confidence")
         return SquareResult(
             square=square,

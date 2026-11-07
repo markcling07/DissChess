@@ -4,6 +4,6 @@
   "input_size": 640,
   "min_confidence": 0.25,
   "base_fraction": 0.05,
-  "review_threshold": 0.6,
+  "review_threshold": 0.8,
   "empty_confidence": 0.9
 }

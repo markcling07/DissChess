@@ -81,6 +81,10 @@ These figures come from the development photos, using the detector with perfect 
   better than removing the rule. Flags now catch 76.0% of wrong squares while flagging only 1.8%,
   and 20.0% of boards are silently wrong, mostly from empty squares read as knights. Without
   White's side marked, 5.36% are wrong, as the direction is right on 83.3% of boards.
+- **Squares below 80% confidence are now flagged,** up from 60%. Flags catch 92.4% of wrong squares
+  while asking the user to check 3.0% of squares, about 2 a board, and 7.3% of boards are silently
+  wrong. Flagging pieces that stand behind another, sit on the board's rim or share a square
+  added little on top. Tuned on the development photos, so the held-out run is the real check.
 
 ## Reproducing
 

@@ -83,7 +83,7 @@ renders. `piece_detector.json` holds its version and the settings `photo.py` use
 when the app is opened with `?photos=1`, because whole boards are still rarely read perfectly.
 
 On 330 development photos from ChessReD2K, with true corners and White's side marked, 1.61% of
-squares are wrong, 40.9% of boards have no errors, and 76% of wrong squares are flagged. The
-held-out photos haven't been used yet.
+squares are wrong, 40.9% of boards have no errors, and 92% of wrong squares are flagged while
+flagging 3% of squares. The held-out photos haven't been used yet.
 Credits and results are in `docs/third-party.md` and `docs/photo-comparison.md`, and
 `ml/scripts/train_many_sets.sh` rebuilds it after `python -m ptc_photo.render_many_sets`.

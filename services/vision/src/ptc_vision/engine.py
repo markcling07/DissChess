@@ -45,8 +45,8 @@ COLOUR_INDEXES = {
 
 MESSAGES: dict[FailureCode, str] = {
     "no_board_detected": (
-        "No flat chessboard was found. Screenshots of digital boards work best, and photos of real "
-        "boards aren't supported yet. Try a clearer image, or arrange the position by hand."
+        "No flat chessboard was found. Screenshots of digital boards work best. Try a clearer "
+        "image, or arrange the position by hand."
     ),
     "multiple_boards_detected": (
         "This image has more than one chessboard. Crop it to the one you want and try again."

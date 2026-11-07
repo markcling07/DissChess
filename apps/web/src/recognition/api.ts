@@ -4,6 +4,7 @@ import {
   type RecognitionFailure,
   type RecognitionResponse,
 } from "@photo-to-chess/contract";
+import { cornersParameter, whiteParameter, type Corner, type Corners } from "./corners";
 
 const ENDPOINT = `${import.meta.env.VITE_RECOGNITION_URL ?? ""}/api/v1/recognize`;
 
@@ -21,11 +22,24 @@ function localFailure(message: string): RecognitionFailure {
   };
 }
 
-/** Sends an image for reading. Never throws except when aborted. */
-export async function recognizeImage(image: Blob, signal: AbortSignal): Promise<RecognitionResponse> {
+/**
+ * Sends an image for reading. A photo of a real board goes with the corners the user marked, and
+ * a point on the edge White sits behind when the user gave one. Never throws except when aborted.
+ */
+export async function recognizeImage(
+  image: Blob,
+  signal: AbortSignal,
+  corners?: Corners,
+  white?: Corner,
+): Promise<RecognitionResponse> {
+  let url = ENDPOINT;
+  if (corners) {
+    url += `?corners=${cornersParameter(corners)}`;
+    if (white) url += `&white=${whiteParameter(white)}`;
+  }
   let response: Response;
   try {
-    response = await fetch(ENDPOINT, {
+    response = await fetch(url, {
       method: "POST",
       body: image,
       headers: { "Content-Type": image.type || "application/octet-stream" },

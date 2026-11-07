@@ -29,7 +29,7 @@ export type Severity = "blocking" | "warning";
 export type Squares = string[];
 export type Issues = PositionIssue[];
 export type Confidence1 = number;
-export type Method = "board_labels" | "piece_layout" | "square_colour" | "assumed";
+export type Method = "board_labels" | "piece_layout" | "square_colour" | "user" | "assumed";
 export type NeedsReview = boolean;
 /**
  * Clockwise quarter turns of the corrected board view that bring White to the bottom. 0 means White was at the bottom of the image and 2 means Black was.
@@ -143,6 +143,8 @@ export type Code1 =
   | "image_too_blurry"
   | "board_incomplete"
   | "recognition_timeout"
+  | "invalid_corners"
+  | "photos_unsupported"
   | "internal_error";
 export type ContractVersion1 = "1.0";
 /**

@@ -54,8 +54,11 @@ class Scripted:
         return self.result
 
 
-def client_for(recognizer, **options) -> TestClient:
-    return TestClient(create_app(lambda: recognizer, **options), raise_server_exceptions=False)
+def client_for(recognizer, photo=None, **options) -> TestClient:
+    return TestClient(
+        create_app(lambda: recognizer, photo_recognizer_factory=lambda: photo, **options),
+        raise_server_exceptions=False,
+    )
 
 
 def test_success_returns_a_valid_response():
@@ -165,3 +168,73 @@ def test_configured_origin_is_allowed(monkeypatch):
     assert allowed.headers["access-control-allow-origin"] == "https://app.test"
     other = client.post(URL, content=png(), headers={"Origin": "https://other.test"})
     assert "access-control-allow-origin" not in other.headers
+
+
+class TappedScripted(Scripted):
+    def recognize(self, image: bytes, corners, white=None):
+        self.corners = corners
+        self.white = white
+        return super().recognize(image)
+
+
+CORNERS = "0.1,0.1,0.9,0.1,0.9,0.9,0.1,0.9"
+
+
+def test_tapped_corners_go_to_the_photo_recognizer():
+    screenshots, photos = Scripted(), TappedScripted()
+    response = client_for(screenshots, photo=photos).post(f"{URL}?corners={CORNERS}", content=png())
+    assert response.status_code == 200
+    assert screenshots.received == []
+    assert [round(p.x, 2) for p in photos.corners] == [0.1, 0.9, 0.9, 0.1]
+
+
+def test_whites_side_goes_to_the_photo_recognizer():
+    photos = TappedScripted()
+    response = client_for(Scripted(), photo=photos).post(
+        f"{URL}?corners={CORNERS}&white=0.5,0.9", content=png()
+    )
+    assert response.status_code == 200
+    assert (photos.white.x, photos.white.y) == (0.5, 0.9)
+
+
+@pytest.mark.parametrize(
+    "query", [f"corners={CORNERS}&white=0.5", f"corners={CORNERS}&white=x,y", "white=0.5,0.9"]
+)
+def test_bad_or_lone_whites_side_is_refused(query):
+    photos = TappedScripted()
+    response = client_for(Scripted(), photo=photos).post(f"{URL}?{query}", content=png())
+    assert response.status_code == 400
+    assert response.json()["code"] == "invalid_corners"
+    assert photos.received == []
+
+
+def test_without_corners_the_screenshot_recognizer_is_used():
+    screenshots, photos = Scripted(), TappedScripted()
+    client_for(screenshots, photo=photos).post(URL, content=png())
+    assert len(screenshots.received) == 1
+    assert photos.received == []
+
+
+@pytest.mark.parametrize(
+    "corners",
+    [
+        "1,2,3",
+        "0.1,0.1,0.9,0.1,0.9,0.9,0.1,1.5",
+        "a,b,c,d,e,f,g,h",
+        "0.5,0.5,0.51,0.5,0.51,0.51,0.5,0.51",
+    ],
+)
+def test_bad_corners_are_refused_before_reading(corners):
+    photos = TappedScripted()
+    response = client_for(Scripted(), photo=photos).post(f"{URL}?corners={corners}", content=png())
+    assert response.status_code == 400
+    assert response.json()["code"] == "invalid_corners"
+    assert photos.received == []
+
+
+def test_corners_are_refused_when_no_photo_reader_is_installed():
+    response = client_for(Scripted(), photo=None).post(f"{URL}?corners={CORNERS}", content=png())
+    assert response.status_code == 422
+    body = recognition_response_adapter.validate_python(response.json())
+    assert body.code == "photos_unsupported"
+    assert not body.retryable

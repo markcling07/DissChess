@@ -113,6 +113,23 @@ describe("setup screen", () => {
     expect(screen.getByTestId("board").textContent).toBe("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR");
   });
 
+  it("loads the position after a list of moves, with the side to move set", () => {
+    render(<Setup initial={emptySetup()} onStart={vi.fn()} />);
+    fireEvent.change(screen.getByLabelText("Moves"), { target: { value: "1. e4 e5 2. Nf3 Nc6 3. Bb5" } });
+    fireEvent.click(button("Load moves"));
+    expect(screen.getByTestId("board").textContent).toBe("r1bqkbnr/pppp1ppp/2n5/1B2p3/4P3/5N2/PPPP1PPP/RNBQK2R");
+    expect(screen.getByRole("status").textContent).toBe("Loaded the position after 3. Bb5. Black to move.");
+    expect((button("Start game") as HTMLButtonElement).disabled).toBe(false);
+  });
+
+  it("names the move that can't be played, and keeps the current position", () => {
+    render(<Setup initial={standardSetup()} onStart={vi.fn()} />);
+    fireEvent.change(screen.getByLabelText("Moves"), { target: { value: "1. e4 e5 2. Ke3" } });
+    fireEvent.click(button("Load moves"));
+    expect(screen.getByRole("status").textContent).toContain("Couldn't play 2. Ke3 for White");
+    expect(screen.getByTestId("board").textContent).toBe("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR");
+  });
+
   it("warns about an unusual position but lets it be played", () => {
     render(<Setup initial={parseFen("4k3/8/8/8/8/QQ6/PPPPPPPP/4K3 w - - 0 1")} onStart={vi.fn()} />);
     expect(screen.getByText(/more promoted pieces than missing pawns/)).toBeTruthy();

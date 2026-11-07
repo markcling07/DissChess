@@ -1,0 +1,185 @@
+{
+  "_comment": "CC0 and CC BY 4.0 chess sets from OpenGameArt, itch.io and Thingiverse, kept in ml/data/sets. Each piece names an object in the set's file, an object in another file beside it as file#object, or a .stl or .obj file. Only the shapes are used: materials are made up for each render.",
+  "sets": [
+    {
+      "id": "tunakron",
+      "file": "3d-chess-pieces/chess_pieces.blend",
+      "source": "https://opengameart.org/content/3d-chess-pieces",
+      "author": "tunakron",
+      "licence": "CC0",
+      "pieces": {
+        "P": "Pawn",
+        "N": "Knight",
+        "B": "Bishop",
+        "R": "Rook",
+        "Q": "Queen",
+        "K": "King"
+      }
+    },
+    {
+      "id": "killgorack",
+      "file": "chess-board-pieces/wood chess board.blend",
+      "source": "https://opengameart.org/content/chess-board-pieces",
+      "author": "KillGorack",
+      "licence": "CC0",
+      "pieces": {
+        "P": "White_Pawn",
+        "N": "White_Knight",
+        "B": "White_Bishop",
+        "R": "White_Rook",
+        "Q": "White_Queen",
+        "K": "White_King"
+      }
+    },
+    {
+      "id": "bellanger",
+      "file": "chess-pieces-0/chess.blend",
+      "source": "https://opengameart.org/content/chess-pieces-0",
+      "author": "Clint Bellanger",
+      "licence": "CC0",
+      "pieces": {
+        "P": "Pawn",
+        "N": "Knight",
+        "B": "Bishop",
+        "R": "Rook",
+        "Q": "Queen",
+        "K": "King"
+      }
+    },
+    {
+      "id": "rehcub",
+      "file": "chess-set-1/chess_1.blend",
+      "source": "https://opengameart.org/content/chess-set-1",
+      "author": "rehcub",
+      "licence": "CC0",
+      "pieces": {
+        "P": "Pawn",
+        "N": "Knight",
+        "B": "Bishop",
+        "R": "Rook",
+        "Q": "Queen",
+        "K": "King"
+      }
+    },
+    {
+      "id": "pjhanzlik",
+      "file": "chess/chess_5.blend",
+      "source": "https://opengameart.org/content/chess",
+      "author": "pjhanzlik",
+      "licence": "CC0",
+      "pieces": {
+        "P": "Pawn",
+        "N": "Knight",
+        "B": "Bishop",
+        "R": "Rook",
+        "Q": "Queen",
+        "K": "King"
+      }
+    },
+    {
+      "id": "lyricsz-rough",
+      "file": "rough-chess-piece/cproject.blend",
+      "source": "https://opengameart.org/content/rough-chess-piece",
+      "author": "Lyricsz",
+      "licence": "CC0",
+      "pieces": {
+        "P": "Pawn",
+        "N": "Knight",
+        "B": "Bishop",
+        "R": "Rooke",
+        "Q": "Queen",
+        "K": "King"
+      }
+    },
+    {
+      "id": "lyricsz-stylized",
+      "file": "stylized-chess-pieces/Chess.blend",
+      "source": "https://opengameart.org/content/stylized-chess-pieces",
+      "author": "Lyricsz",
+      "licence": "CC0",
+      "pieces": {
+        "P": "Pawn",
+        "N": "Knight",
+        "B": "Bishop",
+        "R": "Rook",
+        "Q": "Queen",
+        "K": "King"
+      }
+    },
+    {
+      "id": "deplorable",
+      "file": "deplorable/Chess/Blender 2.82a/Chess Scene.blend",
+      "source": "https://deplorablemountaineer.itch.io/chess-board-and-pieces",
+      "author": "deplorablemountaineer",
+      "licence": "CC0",
+      "pieces": {
+        "P": "Black Pawn 1",
+        "N": "Black Knight K",
+        "B": "Black Bishop K",
+        "R": "Black Rook K",
+        "Q": "Black Queen",
+        "K": "Black King"
+      }
+    },
+    {
+      "id": "rayb2",
+      "file": "chess-pieces-5/Chess_Pieces.blend",
+      "source": "https://opengameart.org/content/chess-pieces-5",
+      "author": "RayB2",
+      "licence": "CC BY 4.0",
+      "pieces": {
+        "P": "PAWN",
+        "N": "KNIGHT.001",
+        "B": "Cylinder.001",
+        "R": "ROOK",
+        "Q": "QUEEN",
+        "K": "KING"
+      }
+    },
+    {
+      "id": "justinaray",
+      "file": "low-poly-chess-set/Blend/King.blend",
+      "source": "https://opengameart.org/content/low-poly-chess-set",
+      "author": "JustinARay",
+      "licence": "CC BY 4.0",
+      "pieces": {
+        "P": "Pawn.blend#Pawn",
+        "N": "Knight.blend#Knight",
+        "B": "Bishop.blend#Bishop",
+        "R": "Rook.blend#Rook",
+        "Q": "Queen.blend#Queen",
+        "K": "King"
+      }
+    },
+    {
+      "id": "cmb27",
+      "file": "cmb27-micro-staunton/files/Piece_King.stl",
+      "source": "https://www.thingiverse.com/thing:1288929",
+      "author": "CMB27",
+      "licence": "CC BY 4.0",
+      "pieces": {
+        "P": "Piece_Pawn.stl",
+        "N": "Piece_Knight.stl",
+        "B": "Piece_Bishop.stl",
+        "R": "Piece_Rook.stl",
+        "Q": "Piece_Queen.stl",
+        "K": "Piece_King.stl"
+      }
+    },
+    {
+      "id": "stafford",
+      "file": "stafford/files/King2.STL",
+      "source": "https://www.thingiverse.com/thing:4845987",
+      "author": "Stafford",
+      "licence": "CC BY 4.0",
+      "pieces": {
+        "P": "Pawn2.STL",
+        "N": "Knight2.STL",
+        "B": "Bishop2.STL",
+        "R": "Castle2.STL",
+        "Q": "Queen2.STL",
+        "K": "King2.STL"
+      }
+    }
+  ]
+}

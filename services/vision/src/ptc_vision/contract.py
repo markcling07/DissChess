@@ -21,7 +21,7 @@ Probability = Annotated[float, Field(ge=0.0, le=1.0)]
 NormalisedCoordinate = Annotated[float, Field(ge=0.0, le=1.0)]
 
 ReviewReason = Literal["low_confidence", "close_alternative", "position_conflict"]
-OrientationMethod = Literal["board_labels", "piece_layout", "square_colour", "assumed"]
+OrientationMethod = Literal["board_labels", "piece_layout", "square_colour", "user", "assumed"]
 PositionIssueCode = Literal[
     "missing_king",
     "extra_king",
@@ -42,6 +42,8 @@ FailureCode = Literal[
     "image_too_blurry",
     "board_incomplete",
     "recognition_timeout",
+    "invalid_corners",
+    "photos_unsupported",
     "internal_error",
 ]
 

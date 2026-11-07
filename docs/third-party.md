@@ -30,9 +30,12 @@ Board textures from the same repository are by the lila authors and pirouetti, u
 
 Other sets are used only to measure accuracy. They aren't committed, trained on or shipped.
 
-## Photo experiments
+## Photo recognition
 
-Used in the M3 comparison. None of this is committed or shipped.
+Used in the M3 comparison and for training the photo detector. None of the material itself is
+committed. The trained detector is, in `services/vision/src/ptc_vision/models/piece_detector.onnx`,
+and may count as derived from the chesscog renders and the CC BY 4.0 sets below (so their authors
+are credited here) and from the Ultralytics starting weights (AGPL-3.0).
 
 | Material | Used for | Author | Licence |
 |---|---|---|---|
@@ -40,3 +43,27 @@ Used in the M3 comparison. None of this is committed or shipped.
 | Chesscog code and models | Baseline for comparison | Georg Wölflein | MIT |
 | Chesscog rendered dataset | Training the detectors | Georg Wölflein and Ognjen Arandjelović | CC BY 4.0 |
 | Ultralytics YOLO11n | Detector code and starting weights | Ultralytics | AGPL-3.0 |
+| Blender 5.2.3 | Rendering training images. A tool only, not shipped | Blender Foundation | GPL-3.0-or-later |
+
+### Chess sets rendered for training
+
+CC BY 4.0 sets need their authors credited wherever the detector is distributed.
+
+Only the piece shapes are used. Materials, boards and lighting are made up for each image by
+`ml/src/ptc_photo/blender_render.py`, which also stretches each piece type a little.
+
+| Set | Author | Licence |
+|---|---|---|
+| [3d chess pieces](https://opengameart.org/content/3d-chess-pieces) | tunakron | CC0 |
+| [Chess board & pieces](https://opengameart.org/content/chess-board-pieces) | KillGorack | CC0 |
+| [Chess Pieces](https://opengameart.org/content/chess-pieces-0) | Clint Bellanger | CC0 |
+| [Chess Set](https://opengameart.org/content/chess-set-1) | rehcub | CC0 |
+| [Chess](https://opengameart.org/content/chess) | pjhanzlik | CC0 |
+| [Rough Chess Piece](https://opengameart.org/content/rough-chess-piece) | Lyricsz | CC0 |
+| [Stylized Chess Pieces](https://opengameart.org/content/stylized-chess-pieces) | Lyricsz | CC0 |
+| [Chess Board and Pieces](https://deplorablemountaineer.itch.io/chess-board-and-pieces) | deplorablemountaineer | CC0 |
+| [Chess Pieces](https://opengameart.org/content/chess-pieces-5) | RayB2 | CC BY 4.0 |
+| [Low Poly Chess Set](https://opengameart.org/content/low-poly-chess-set) | JustinARay | CC BY 4.0 |
+| [Micro Staunton Chess Set](https://www.thingiverse.com/thing:1288929) | CMB27 | CC BY 4.0 |
+
+Also downloaded but not used yet: [Chess Set](https://www.thingiverse.com/thing:4845987) by Stafford (CC BY 4.0), a minimalist modern design far from the Staunton shapes in most photos.

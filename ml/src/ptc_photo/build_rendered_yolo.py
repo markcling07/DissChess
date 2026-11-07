@@ -121,6 +121,15 @@ def convert(job: tuple) -> str | None:
         "\n".join(corner_labels(label["corners"], width, height)) + "\n", encoding="utf-8"
     )
 
+    write_piece_crop(image, label, stem, OUT_PIECES, split, rng)
+    return None
+
+
+def write_piece_crop(
+    image: Image.Image, label: dict, stem: str, out: Path, split: str, rng: random.Random
+) -> None:
+    """Crops to the board as the recogniser does, and writes the image with its piece boxes."""
+    width, height = image.size
     xs = [c[0] for c in label["corners"]]
     ys = [c[1] for c in label["corners"]]
     side = max(max(xs) - min(xs), max(ys) - min(ys))
@@ -135,7 +144,7 @@ def convert(job: tuple) -> str | None:
     crop_scale = IMAGE_SIZE / max(crop_width, crop_height)
     crop.resize(
         (round(crop_width * crop_scale), round(crop_height * crop_scale)), Image.LANCZOS
-    ).save(OUT_PIECES / "images" / split / f"{stem}.jpg", quality=88)
+    ).save(out / "images" / split / f"{stem}.jpg", quality=88)
 
     rows = []
     for piece in label["pieces"]:
@@ -149,10 +158,7 @@ def convert(job: tuple) -> str | None:
             f"{((x0 + x1) / 2 - left) / crop_width:.5f} {((y0 + y1) / 2 - top) / crop_height:.5f} "
             f"{(x1 - x0) / crop_width:.5f} {(y1 - y0) / crop_height:.5f}"
         )
-    (OUT_PIECES / "labels" / split / f"{stem}.txt").write_text(
-        "\n".join(rows) + "\n", encoding="utf-8"
-    )
-    return None
+    (out / "labels" / split / f"{stem}.txt").write_text("\n".join(rows) + "\n", encoding="utf-8")
 
 
 _archives: dict[tuple, SplitArchive] = {}

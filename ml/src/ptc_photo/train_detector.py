@@ -23,6 +23,8 @@ SETTINGS = {
         "fliplr": 0.5,
         "mosaic": 0.5,
     },
+    # Many chess sets: the same settings as pieces, on the dataset from build_many_sets_yolo.
+    "mixed": None,
     # Boards are often seen from a corner, so corners get large rotations. Pieces don't, since
     # pieces stay upright in a photo however the board is turned.
     "corners": {
@@ -46,12 +48,13 @@ def main() -> None:
     parser.add_argument("--imgsz", type=int, default=640)
     parser.add_argument("--fraction", type=float, default=1.0)
     parser.add_argument("--name", default=None)
+    parser.add_argument("--weights", default="yolo11n.pt", help="starting weights in ml/data")
     args = parser.parse_args()
 
     settings.update({"sync": False})
     started = time.perf_counter()
     # Kept with the other data, as the library would otherwise download into the current folder.
-    model = YOLO(str(DATA_DIR / "yolo11n.pt"))
+    model = YOLO(str(DATA_DIR / args.weights))
     model.train(
         data=str(DATA_DIR / f"yolo_{args.target}" / "dataset.yaml"),
         epochs=args.epochs,
@@ -66,7 +69,7 @@ def main() -> None:
         patience=8,
         verbose=False,
         plots=False,
-        **SETTINGS[args.target],
+        **(SETTINGS[args.target] or SETTINGS["pieces"]),
     )
     print(f"Finished {args.target} in {(time.perf_counter() - started) / 60:.1f} minutes")
 

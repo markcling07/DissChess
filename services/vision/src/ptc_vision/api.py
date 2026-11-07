@@ -1,6 +1,11 @@
 """The HTTP service. Images are held in memory for one request and never written anywhere.
 
 Run: uvicorn --factory ptc_vision.api:create_app --port 8000
+
+POST /api/v1/recognize takes the image as the request body. For a photo of a real board, the
+corners the user tapped go in the query string, as corners=x1,y1,x2,y2,x3,y3,x4,y4 with each value
+from 0 to 1 across the image as sent, in any order. Optionally, white=x,y is a point on the edge of
+the board White sits behind, so the board's direction isn't guessed.
 """
 
 import asyncio
@@ -14,10 +19,11 @@ from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, Response
 
-from ptc_vision.contract import FailureCode, RecognitionFailure, RecognitionSuccess
+from ptc_vision.contract import FailureCode, Point, RecognitionFailure, RecognitionSuccess
 from ptc_vision.engine import make_recognizer
 from ptc_vision.intake import MAX_FILE_BYTES
-from ptc_vision.recognizer import Recognizer
+from ptc_vision.photo import check_corners, make_photo_recognizer
+from ptc_vision.recognizer import Recognizer, TappedRecognizer
 
 logger = logging.getLogger("ptc_vision.api")
 
@@ -36,8 +42,45 @@ STATUS_BY_CODE: dict[FailureCode, int] = {
     "image_too_blurry": 422,
     "board_incomplete": 422,
     "recognition_timeout": 504,
+    "invalid_corners": 400,
+    "photos_unsupported": 422,
     "internal_error": 500,
 }
+
+
+def parse_corners(text: str) -> list[Point] | RecognitionFailure:
+    """Reads tapped corners from the query string, or explains what's wrong with them."""
+    invalid = RecognitionFailure(
+        code="invalid_corners",
+        message="The board corners weren't understood. Tap the four corners again.",
+        retryable=True,
+    )
+    try:
+        values = [float(part) for part in text.split(",")]
+    except ValueError:
+        return invalid
+    if len(values) != 8 or not all(0.0 <= value <= 1.0 for value in values):
+        return invalid
+    corners = [Point(x=values[i], y=values[i + 1]) for i in range(0, 8, 2)]
+    problem = check_corners(corners)
+    if problem:
+        return invalid.model_copy(update={"message": problem})
+    return corners
+
+
+def parse_white(text: str) -> Point | RecognitionFailure:
+    """Reads the point on White's edge from the query string."""
+    try:
+        values = [float(part) for part in text.split(",")]
+    except ValueError:
+        values = []
+    if len(values) != 2 or not all(0.0 <= value <= 1.0 for value in values):
+        return RecognitionFailure(
+            code="invalid_corners",
+            message="White's side of the board wasn't understood. Mark it again.",
+            retryable=True,
+        )
+    return Point(x=values[0], y=values[1])
 
 
 def _failure_response(failure: RecognitionFailure) -> JSONResponse:
@@ -77,11 +120,13 @@ def create_app(
     recognizer_factory: Callable[[], Recognizer] = make_recognizer,
     rate_limiter: RateLimiter | None = None,
     timeout_seconds: float = TIMEOUT_SECONDS,
+    photo_recognizer_factory: Callable[[], TappedRecognizer | None] = make_photo_recognizer,
 ) -> FastAPI:
     app = FastAPI(title="Photo to Chess recognition", docs_url=None, redoc_url=None)
     limiter = rate_limiter or RateLimiter()
     slots = asyncio.Semaphore(MAX_CONCURRENT)
     recognizer = recognizer_factory()
+    photo_recognizer = photo_recognizer_factory()
 
     origins = [o for o in os.environ.get("PTC_ALLOWED_ORIGINS", "").split(",") if o]
     if origins:
@@ -123,6 +168,36 @@ def create_app(
                 headers={"Retry-After": str(round(limiter.window))},
             )
 
+        corners: list[Point] | None = None
+        if "corners" in request.query_params:
+            parsed = parse_corners(request.query_params["corners"])
+            if isinstance(parsed, RecognitionFailure):
+                return _failure_response(parsed)
+            if photo_recognizer is None:
+                return _failure_response(
+                    RecognitionFailure(
+                        code="photos_unsupported",
+                        message="Photos of real boards can't be read yet. Use a screenshot, or "
+                        "arrange the position by hand.",
+                        retryable=False,
+                    )
+                )
+            corners = parsed
+        white: Point | None = None
+        if "white" in request.query_params:
+            parsed_white = parse_white(request.query_params["white"])
+            if isinstance(parsed_white, RecognitionFailure):
+                return _failure_response(parsed_white)
+            if corners is None:
+                return _failure_response(
+                    RecognitionFailure(
+                        code="invalid_corners",
+                        message="White's side can only be given with the board's corners.",
+                        retryable=True,
+                    )
+                )
+            white = parsed_white
+
         # Read as a stream so an oversized upload is refused without being held in full.
         body = bytearray()
         async for chunk in request.stream():
@@ -140,9 +215,13 @@ def create_app(
         try:
             async with slots:
                 # A worker thread, so a slow image doesn't hold up other requests.
-                result = await asyncio.wait_for(
-                    asyncio.to_thread(recognizer.recognize, bytes(body)), timeout_seconds
-                )
+                if corners is not None and photo_recognizer is not None:
+                    work = asyncio.to_thread(
+                        photo_recognizer.recognize, bytes(body), corners, white
+                    )
+                else:
+                    work = asyncio.to_thread(recognizer.recognize, bytes(body))
+                result = await asyncio.wait_for(work, timeout_seconds)
         except TimeoutError:
             return _failure_response(
                 RecognitionFailure(

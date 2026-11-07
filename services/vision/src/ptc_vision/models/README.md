@@ -53,7 +53,7 @@ Held-out square error by piece set:
 - Old font-style sets: tall pawns read as bishops, and hatched pieces can be read as the wrong colour, often with high confidence.
 - Some pointed or domed queens are read as kings.
 - A piece being dragged isn't detected, though it can lower confidence on squares it covers.
-- Photos of real boards aren't supported. That work is planned for M3 and M4.
+- Photos of real boards go to the piece detector below instead.
 
 ## Rebuilding
 
@@ -74,3 +74,15 @@ pnpm setup:python --train
 ```
 
 Training takes about an hour on a 16-thread CPU.
+
+# Piece detector (photos)
+
+`piece_detector.onnx` finds pieces in a photo of a real board whose corners the user marked. It is
+YOLO11n, fine-tuned on Blender renders of eleven CC0 and CC BY 4.0 chess sets mixed with chesscog's
+renders. `piece_detector.json` holds its version and the settings `photo.py` uses. It is only used
+when the app is opened with `?photos=1`, because whole boards are still rarely read perfectly.
+
+On 330 development photos from ChessReD2K, with true corners and White's side marked, 5.28% of
+squares are wrong and 95% of wrong squares are flagged. The held-out photos haven't been used yet.
+Credits and results are in `docs/third-party.md` and `docs/photo-comparison.md`, and
+`ml/scripts/train_many_sets.sh` rebuilds it after `python -m ptc_photo.render_many_sets`.

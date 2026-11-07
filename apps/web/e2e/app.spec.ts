@@ -178,6 +178,33 @@ test.describe("editing a position", () => {
   });
 });
 
+test.describe("pasting moves", () => {
+  test("loads the position after the moves, and the game plays on from it", async ({ page }) => {
+    await page.getByText("Paste moves").click();
+    await page
+      .getByLabel("Moves", { exact: true })
+      .fill(
+        "1. c4 b6 2. b3 c6 3. ♗ b2 ♝ b7 4. ♘ f3 f6 5. d3 e5 6. e4 d6 7. ♗ e2 ♞ d7 8. ♘ c3 ♞ e7 9. O-O g5 10. ♘ d2 h5 11. ♗ xh5+ ♞ g6",
+      );
+    await page.getByRole("button", { name: "Load moves" }).click();
+    await expect(page.getByText("Loaded the position after 11... Ng6. White to move.")).toBeVisible();
+    await expect(page.getByText("r2qkb1r/pb1n4/1ppp1pn1/4p1pB/2P1P3/1PNP4/PB1N1PPP/R2Q1RK1 w kq - 1 12")).toBeVisible();
+
+    await page.getByRole("button", { name: "Start game" }).click();
+    await tapMove(page, "h5", "g6");
+    expect((await pieces(page)).get("g6")).toBe("white bishop");
+    await expect(status(page)).toHaveText("Black to move, in check.");
+  });
+
+  test("a move that can't be played is named, and nothing changes", async ({ page }) => {
+    await page.getByText("Paste moves").click();
+    await page.getByLabel("Moves", { exact: true }).fill("1. e4 e5 2. Nf6");
+    await page.getByRole("button", { name: "Load moves" }).click();
+    await expect(page.getByText(/Couldn't play 2\. Nf6 for White/)).toBeVisible();
+    expect((await pieces(page)).size).toBe(32);
+  });
+});
+
 test.describe("playing from a position", () => {
   test("keeps the exact pieces and the side to move", async ({ page }) => {
     await startFrom(page, "4k3/8/8/8/8/8/4P3/4K3 b - - 12 40");

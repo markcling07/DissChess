@@ -45,6 +45,36 @@ These figures come from the development photos, using the detector with perfect 
   More training on the same renders is unlikely to fix the piece types, since the gap is between
   rendered and real sets.
 
+## Since the comparison (M4)
+
+- **Corners are marked by the user.** Corner finding failed on real photos, so the user drags four
+  markers onto the board, with an 8 by 8 grid drawn to check the fit. The service takes them as
+  `?corners=` on the recognise request. This is switched off in the app unless opened with
+  `?photos=1` or built with `VITE_PHOTO_CORNERS=1`.
+- **The service reads photos itself,** with the detector exported to ONNX, so it needs no PyTorch.
+  It also turns the board until White is at the bottom, which the comparison didn't attempt.
+- **With the same detector, on development photos with true corners:** 15.16% of squares wrong,
+  orientation included (36.64% before, when orientation was assumed). At the best rotation, 11.61%.
+  Orientation right on 79.4% of boards. Flags caught 65.8% of wrong squares while flagging 32.9%.
+- **Training on more chess sets:** eleven CC0 and CC BY 4.0 sets (see `third-party.md`) are
+  rendered in Blender with made-up materials, boards and lighting: 3,850 images, mixed with 1,200 of
+  chesscog's renders. The detector is fine-tuned from the first one for 12 epochs (`pieces-v2`).
+- **With `pieces-v2`, same photos and corners:** 9.49% of squares wrong (95% interval 8.66% to
+  10.43%), and 5.28% at the best rotation. Orientation is unchanged at 79.4%, so it is now the larger
+  source of error. Flags caught 82.0% of wrong squares while flagging 21.3%, and boards silently
+  wrong fell from 79.1% to 21.5%. Median time per photo was 169 ms; the 564 ms measured for the
+  first detector, the same size of model, was taken while renders were running. The held-out photos
+  have not been used yet.
+- **The board's direction is now marked by the user.** Guessing it from where the pieces stand is
+  wrong on 57 of the 330 development positions even with every piece read correctly, all of them
+  endgames, some with confidence near 1. So after the corners, the user taps the edge White sits
+  behind (sent as `white=x,y`), or says they aren't sure and the old guess is used.
+- **With White's side marked, same photos and corners:** 5.28% of squares wrong (95% interval
+  4.98% to 5.60%), direction right on every board. Flags caught 95.2% of wrong squares while
+  flagging 7.7% of squares, and boards silently wrong fell to 13.9%. 4.8% of boards were read with
+  no errors and 14.8% with at most one. Measured with `make_recognizer_with_white`, which stands in
+  for a correct tap.
+
 ## Reproducing
 
 ```bash

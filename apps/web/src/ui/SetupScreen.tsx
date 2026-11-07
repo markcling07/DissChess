@@ -11,6 +11,7 @@ import {
   type PieceCode,
   type PositionSetup,
 } from "../chess/position";
+import { positionFromMoves } from "../chess/moves";
 import { forcedSideToMove, hasBlockingIssue, validatePosition } from "../chess/validate";
 import { unresolvedCount, type ReviewState } from "../recognition/review";
 import type { SessionAction } from "../setup/sessionState";
@@ -52,6 +53,8 @@ export function SetupScreen({
   const [tool, setTool] = useState<Tool>(null);
   const [fenDraft, setFenDraft] = useState("");
   const [fenMessage, setFenMessage] = useState<{ text: string; isError: boolean } | null>(null);
+  const [movesDraft, setMovesDraft] = useState("");
+  const [movesMessage, setMovesMessage] = useState<{ text: string; isError: boolean } | null>(null);
 
   const resolved = useMemo(() => resolveSetup(setup), [setup]);
   const issues = useMemo(() => validatePosition(resolved), [resolved]);
@@ -93,6 +96,18 @@ export function SetupScreen({
       });
     } catch (error) {
       setFenMessage({ text: (error as Error).message, isError: true });
+    }
+  }
+
+  function loadMoves() {
+    try {
+      const result = positionFromMoves(movesDraft);
+      const setupFromMoves = parseFen(result.fen);
+      dispatch({ type: "load", setup: setupFromMoves });
+      const side = SIDE_NAME[setupFromMoves.sideToMove ?? "w"];
+      setMovesMessage({ text: `Loaded the position after ${result.last}. ${side} to move.`, isError: false });
+    } catch (error) {
+      setMovesMessage({ text: (error as Error).message, isError: true });
     }
   }
 
@@ -290,6 +305,33 @@ export function SetupScreen({
           {fenMessage && (
             <p className={fenMessage.isError ? "hint hint--error" : "hint"} role="status">
               {fenMessage.text}
+            </p>
+          )}
+        </details>
+
+        <details className="more">
+          <summary>Paste moves</summary>
+          <p className="hint">
+            Type or paste the moves played so far, like 1. e4 e5 2. Nf3. A PGN or a list copied from a game page works
+            too.
+          </p>
+          <label className="field">
+            <span>Moves</span>
+            <textarea
+              rows={4}
+              spellCheck={false}
+              autoCapitalize="off"
+              autoCorrect="off"
+              value={movesDraft}
+              onChange={(event) => setMovesDraft(event.target.value)}
+            />
+          </label>
+          <button type="button" onClick={loadMoves}>
+            Load moves
+          </button>
+          {movesMessage && (
+            <p className={movesMessage.isError ? "hint hint--error" : "hint"} role="status">
+              {movesMessage.text}
             </p>
           )}
         </details>

@@ -84,6 +84,7 @@ when the app is opened with `?photos=1`, because whole boards are still rarely r
 
 On 330 development photos from ChessReD2K, with true corners and White's side marked, 1.61% of
 squares are wrong, 40.9% of boards have no errors, and 92% of wrong squares are flagged while
-flagging 3% of squares. The held-out photos haven't been used yet.
+flagging 3% of squares. On the 306 held-out photos, run once, 1.69% of squares are wrong, 43.8% of
+boards have no errors, and 89.7% of wrong squares are flagged.
 Credits and results are in `docs/third-party.md` and `docs/photo-comparison.md`, and
 `ml/scripts/train_many_sets.sh` rebuilds it after `python -m ptc_photo.render_many_sets`.

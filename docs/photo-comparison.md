@@ -86,6 +86,25 @@ These figures come from the development photos, using the detector with perfect 
   wrong. Flagging pieces that stand behind another, sit on the board's rim or share a square
   added little on top. Tuned on the development photos, so the held-out run is the real check.
 
+### M4 results on held-out photos
+
+Run once, after all the settings above were chosen, on the same 306 held-out photos as M3, with
+true corners standing in for the user's taps. "White's side marked" stands in for a correct tap.
+
+| Measure | M3 detector | M4, White's side marked | M4, direction guessed |
+|---|---|---|---|
+| Wrong squares, direction counted | Not measured | 1.69% (1.47% to 1.92%) | 2.63% (2.13% to 3.16%) |
+| Wrong squares at the best rotation | 14.29% | 1.69% | 1.69% |
+| Boards with no errors | 0% | 43.8% | 41.5% |
+| Boards with at most one error | Not measured | 70.6% | 66.7% |
+| Direction right | Not attempted | 100% | 95.4% |
+| Wrong squares flagged | Not measured | 89.7% | 65.1% |
+| Squares flagged | Not measured | 3.8% | 4.2% |
+| Boards silently wrong | Not measured | 9.8% | 13.7% |
+
+The held-out figures are close to the development ones, so the tuning didn't overfit those photos.
+ChessReD shows one chess set and board, though, so other sets, lighting and phones are untested.
+
 ## Reproducing
 
 ```bash

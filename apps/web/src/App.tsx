@@ -2,14 +2,14 @@ import { useEffect, useReducer, useState } from "react";
 import { initialSession, sessionReducer } from "./setup/sessionState";
 import { GameScreen } from "./ui/GameScreen";
 import { InputScreen } from "./ui/InputScreen";
-import { SetupScreen } from "./ui/SetupScreen";
+import { SetupScreen, type PastedMoves } from "./ui/SetupScreen";
 
 type Screen = "input" | "setup" | "game";
 
 export function App() {
   const [session, dispatch] = useReducer(sessionReducer, undefined, initialSession);
   const [screen, setScreen] = useState<Screen>("input");
-  const [startFen, setStartFen] = useState<string>("");
+  const [start, setStart] = useState<{ fen: string; moves?: PastedMoves }>({ fen: "" });
 
   // The start button sits low on a long page, so without this the next screen opens scrolled down,
   // with the board out of view.
@@ -38,13 +38,15 @@ export function App() {
           review={session.review}
           dispatch={dispatch}
           onUseImage={() => setScreen("input")}
-          onStart={(fen) => {
-            setStartFen(fen);
+          onStart={(fen, moves) => {
+            setStart({ fen, moves });
             setScreen("game");
           }}
         />
       )}
-      {screen === "game" && <GameScreen key={startFen} startFen={startFen} onEdit={() => setScreen("setup")} />}
+      {screen === "game" && (
+        <GameScreen key={start.fen} startFen={start.fen} pasted={start.moves} onEdit={() => setScreen("setup")} />
+      )}
     </>
   );
 }

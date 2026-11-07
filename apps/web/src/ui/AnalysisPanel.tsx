@@ -5,22 +5,18 @@ import {
   describeScore,
   findInsights,
   formatScore,
+  isError,
   lineToSan,
   numberMoves,
   QUALITY_MARK,
+  QUALITY_NAME,
   winPercent,
-  type MoveQuality,
 } from "../engine/evaluation";
 import { reviewGame, type GameReview, type PlayedMove } from "../engine/review";
 import { ENGINE_UNAVAILABLE, getEngine } from "../engine/sharedEngine";
 import { parseUciMove } from "../engine/uci";
 import { useAnalysis } from "../engine/useAnalysis";
 
-const QUALITY_NAME: Record<MoveQuality, string> = {
-  inaccuracy: "Inaccuracy",
-  mistake: "Mistake",
-  blunder: "Blunder",
-};
 
 /** Live engine analysis of the current position, with a review of the moves played so far. */
 export function AnalysisPanel({
@@ -168,7 +164,8 @@ function MoveReviewSection({
     }
   }
 
-  const flagged = review?.moves.filter((move) => move.quality) ?? [];
+  const flagged = review?.moves.filter((move) => isError(move.quality)) ?? [];
+  const brilliant = review?.moves.filter((move) => move.quality === "brilliant") ?? [];
   const covered = review !== null && review.moves.length === moves.length;
 
   return (
@@ -192,6 +189,22 @@ function MoveReviewSection({
       {review && !progress && (
         <>
           {!covered && <p className="hint">Moves have changed since this review.</p>}
+          {brilliant.length > 0 && (
+            <ul className="reviewed">
+              {brilliant.map((move) => (
+                <li key={move.ply}>
+                  <span className="reviewed__move reviewed__move--good">
+                    {move.san}
+                    {QUALITY_MARK.brilliant}
+                  </span>{" "}
+                  Brilliant: it gives up material and still holds.
+                  {move.followUp.length > 0 && moves[move.ply]
+                    ? ` The engine expects ${numberMoves(moves[move.ply]!.after, move.followUp)}.`
+                    : ""}
+                </li>
+              ))}
+            </ul>
+          )}
           {flagged.length === 0 ? (
             <p className="hint">No inaccuracies, mistakes or blunders found.</p>
           ) : (

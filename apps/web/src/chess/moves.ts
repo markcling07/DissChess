@@ -12,6 +12,10 @@ export interface MovesResult {
   readonly played: number;
   /** The last move, numbered like "11... Ng6", or null when the list held no moves. */
   readonly last: string | null;
+  /** The position the moves start from. */
+  readonly startFen: string;
+  /** Each move in standard notation, so the game can be replayed move by move. */
+  readonly sans: readonly string[];
 }
 
 const FIGURINES: Record<string, string> = {
@@ -114,5 +118,6 @@ export function positionFromMoves(text: string): MovesResult {
     }
     last = `${label} ${san}`;
   }
-  return { fen: chess.fen(), played: chess.history().length, last };
+  const sans = chess.history();
+  return { fen: chess.fen(), played: sans.length, last, startFen: new Chess(fen).fen(), sans };
 }

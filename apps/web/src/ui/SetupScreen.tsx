@@ -37,6 +37,17 @@ function parseCounter(text: string): number {
   return text.trim() === "" ? Number.NaN : Number(text);
 }
 
+/** A pasted move list, kept so the game can show and review the moves that led here. */
+export interface PastedMoves {
+  readonly startFen: string;
+  readonly sans: readonly string[];
+}
+
+/** Compares pieces, side, castling and en passant. The move counters don't change the position. */
+function samePosition(a: string, b: string): boolean {
+  return a.split(" ").slice(0, 4).join(" ") === b.split(" ").slice(0, 4).join(" ");
+}
+
 export function SetupScreen({
   setup,
   review = null,
@@ -47,7 +58,8 @@ export function SetupScreen({
   setup: PositionSetup;
   review?: ReviewState | null;
   dispatch: Dispatch<SessionAction>;
-  onStart: (fen: string) => void;
+  /** Moves come along when the position is the one a pasted move list reached, unchanged since. */
+  onStart: (fen: string, moves?: PastedMoves) => void;
   onUseImage?: () => void;
 }) {
   const [tool, setTool] = useState<Tool>(null);
@@ -55,6 +67,7 @@ export function SetupScreen({
   const [fenMessage, setFenMessage] = useState<{ text: string; isError: boolean } | null>(null);
   const [movesDraft, setMovesDraft] = useState("");
   const [movesMessage, setMovesMessage] = useState<{ text: string; isError: boolean } | null>(null);
+  const [pasted, setPasted] = useState<{ fen: string; moves: PastedMoves } | null>(null);
 
   const resolved = useMemo(() => resolveSetup(setup), [setup]);
   const issues = useMemo(() => validatePosition(resolved), [resolved]);
@@ -104,6 +117,7 @@ export function SetupScreen({
       const result = positionFromMoves(movesDraft);
       const setupFromMoves = parseFen(result.fen);
       dispatch({ type: "load", setup: setupFromMoves });
+      setPasted({ fen: result.fen, moves: { startFen: result.startFen, sans: result.sans } });
       const side = SIDE_NAME[setupFromMoves.sideToMove ?? "w"];
       setMovesMessage({ text: `Loaded the position after ${result.last}. ${side} to move.`, isError: false });
     } catch (error) {
@@ -350,7 +364,11 @@ export function SetupScreen({
           type="button"
           className="primary"
           disabled={blocked}
-          onClick={() => onStart(toFen(resolved))}
+          onClick={() => {
+            const fen = toFen(resolved);
+            if (pasted && samePosition(fen, pasted.fen)) onStart(fen, pasted.moves);
+            else onStart(fen);
+          }}
         >
           Start game
         </button>

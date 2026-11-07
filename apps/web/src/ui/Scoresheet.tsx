@@ -31,7 +31,7 @@ export function Scoresheet({
     return (
       <>
         {san}
-        {mark && <span className="sheet__mark">{mark}</span>}
+        {mark && <span className={mark.startsWith("!") ? "sheet__mark sheet__mark--good" : "sheet__mark"}>{mark}</span>}
       </>
     );
   };

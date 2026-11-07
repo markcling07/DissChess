@@ -305,3 +305,29 @@ describe("destinations", () => {
     expect([...destinations.values()].flat()).toHaveLength(20);
   });
 });
+
+describe("a game opened with moves already played", () => {
+  it("shows those moves, and restart goes back to where it opened", () => {
+    const game = new GameSession(START, ["e4", "e5", "Nf3"]);
+    expect(game.moveCount).toBe(3);
+    expect(game.scoresheet()).toEqual([
+      { number: 1, white: "e4", black: "e5" },
+      { number: 2, white: "Nf3", black: null },
+    ]);
+    expect(game.plies()[2]).toMatchObject({ san: "Nf3", from: "g1", to: "f3" });
+    game.move("b8", "c6");
+    game.restart();
+    expect(game.moveCount).toBe(3);
+    expect(game.turn).toBe("b");
+  });
+
+  it("can undo back into the opening moves", () => {
+    const game = new GameSession(START, ["e4", "e5"]);
+    expect(game.undo()).toBe(true);
+    expect(game.moveCount).toBe(1);
+  });
+
+  it("rejects moves that can't be played", () => {
+    expect(() => new GameSession(START, ["e4", "Ke2"])).toThrow();
+  });
+});

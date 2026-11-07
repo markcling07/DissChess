@@ -17,12 +17,24 @@ export interface ScoresheetRow {
 
 export class GameSession {
   readonly startFen: string;
+  /** Moves already played when the game was opened, such as a pasted game. Restart keeps them. */
+  readonly openingMoves: readonly string[];
   private chess: Chess;
 
-  /** Throws if chess.js rejects the FEN. Run validatePosition first to explain why to the user. */
-  constructor(startFen: string) {
+  /**
+   * Throws if chess.js rejects the FEN or one of the moves. Run validatePosition first to explain
+   * why to the user.
+   */
+  constructor(startFen: string, openingMoves: readonly string[] = []) {
     this.startFen = startFen;
-    this.chess = new Chess(startFen);
+    this.openingMoves = openingMoves;
+    this.chess = GameSession.replay(startFen, openingMoves);
+  }
+
+  private static replay(startFen: string, moves: readonly string[]): Chess {
+    const chess = new Chess(startFen);
+    for (const san of moves) chess.move(san);
+    return chess;
   }
 
   get fen(): string {
@@ -94,15 +106,16 @@ export class GameSession {
     return this.chess.undo() !== null;
   }
 
+  /** Goes back to where the game was opened, keeping any moves it was opened with. */
   restart(): void {
-    this.chess = new Chess(this.startFen);
+    this.chess = GameSession.replay(this.startFen, this.openingMoves);
   }
 
   /** Each move played, with the positions either side of it. */
-  plies(): { san: string; color: Color; before: string; after: string }[] {
+  plies(): { san: string; color: Color; from: Square; to: Square; before: string; after: string }[] {
     return this.chess
       .history({ verbose: true })
-      .map(({ san, color, before, after }) => ({ san, color, before, after }));
+      .map(({ san, color, from, to, before, after }) => ({ san, color, from, to, before, after }));
   }
 
   /** Move history in scoresheet rows. A game starting with Black to move leaves White's cell empty. */

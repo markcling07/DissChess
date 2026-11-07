@@ -8,8 +8,10 @@ import { DEFAULT_STRENGTH, STRENGTHS, type Strength } from "../engine/strength";
 import { parseUciMove } from "../engine/uci";
 import { AnalysisPanel } from "./AnalysisPanel";
 import { Board } from "./Board";
+import { MoveImages } from "./MoveImages";
 import { PromotionDialog } from "./PromotionDialog";
 import { Scoresheet } from "./Scoresheet";
+import type { PastedMoves } from "./SetupScreen";
 
 const SIDE_NAME: Record<Color, string> = { w: "White", b: "Black" };
 
@@ -139,8 +141,20 @@ function OpponentChooser({
   );
 }
 
-export function GameScreen({ startFen, onEdit }: { startFen: string; onEdit: () => void }) {
-  const game = useMemo(() => new GameSession(startFen), [startFen]);
+export function GameScreen({
+  startFen,
+  pasted,
+  onEdit,
+}: {
+  startFen: string;
+  /** The moves that reached startFen, when they were pasted, so they can be reviewed and saved. */
+  pasted?: PastedMoves;
+  onEdit: () => void;
+}) {
+  const game = useMemo(
+    () => (pasted ? new GameSession(pasted.startFen, pasted.sans) : new GameSession(startFen)),
+    [startFen, pasted],
+  );
   const [version, refresh] = useReducer((current: number) => current + 1, 0);
   const [orientation, setOrientation] = useState<Color>("w");
   const [pendingPromotion, setPendingPromotion] = useState<{ from: Square; to: Square } | null>(null);
@@ -150,11 +164,12 @@ export function GameScreen({ startFen, onEdit }: { startFen: string; onEdit: () 
   const [analysing, setAnalysing] = useState(false);
   const [engineProblem, setEngineProblem] = useState(false);
   const [review, setReview] = useState<GameReview | null>(null);
+  const [savingPictures, setSavingPictures] = useState(false);
   const [bestMove, setBestMove] = useState<{ from: Square; to: Square } | null>(null);
   const showBestMove = useCallback((move: { from: Square; to: Square } | null) => setBestMove(move), []);
 
   const status = game.status();
-  const firstMoveNumber = useMemo(() => new Chess(startFen).moveNumber(), [startFen]);
+  const firstMoveNumber = useMemo(() => new Chess(game.startFen).moveNumber(), [game]);
   const fen = game.fen;
   const computerToMove = opponent !== null && status.kind === "playing" && game.turn === opponent.computer;
 
@@ -301,6 +316,9 @@ export function GameScreen({ startFen, onEdit }: { startFen: string; onEdit: () 
           <button type="button" onClick={() => setAnalysing(!analysing)}>
             {analysing ? "Hide analysis" : "Analyze position"}
           </button>
+          <button type="button" disabled={game.moveCount === 0} onClick={() => setSavingPictures(!savingPictures)}>
+            Save moves as pictures
+          </button>
         </div>
 
         {choosingOpponent && !opponent && (
@@ -324,6 +342,14 @@ export function GameScreen({ startFen, onEdit }: { startFen: string; onEdit: () 
       </section>
 
       <section className="layout__side">
+        {savingPictures && game.moveCount > 0 && (
+          <MoveImages
+            moves={plies}
+            review={review}
+            orientation={orientation}
+            onClose={() => setSavingPictures(false)}
+          />
+        )}
         {analysing && (
           <AnalysisPanel
             fen={fen}

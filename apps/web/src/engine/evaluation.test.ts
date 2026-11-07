@@ -6,6 +6,7 @@ import {
   formatScore,
   judgeMove,
   lineToSan,
+  looksBrilliant,
   numberMoves,
   passedFen,
   winPercent,
@@ -170,5 +171,42 @@ describe("judgeMove", () => {
 
   it("doesn't punish a move when the game was already lost", () => {
     expect(judgeMove(mate(-3), mate(-2), "w")).toBeNull();
+  });
+});
+
+describe("spotting brilliant moves", () => {
+  // The bishop sacrifice on h7, taken, with the knight check to follow.
+  const GREEK_GIFT = "r1bq1rk1/pppn1ppp/4p3/3pP3/1b1P4/2NB1N2/PPP2PPP/R1BQK2R w KQ - 0 8";
+  const TAKEN = ["g8h7", "f3g5", "h7g8"];
+
+  it("calls a sacrifice brilliant when the engine says it still holds", () => {
+    expect(looksBrilliant(GREEK_GIFT, "Bxh7+", cp(60), cp(90), TAKEN)).toBe(true);
+  });
+
+  it("calls a sacrifice that leads to mate brilliant", () => {
+    expect(looksBrilliant(GREEK_GIFT, "Bxh7+", cp(300), mate(7), TAKEN)).toBe(true);
+  });
+
+  it("allows the engine's own first choice a little search noise, but not other moves", () => {
+    expect(looksBrilliant(GREEK_GIFT, "Bxh7+", cp(130), cp(90), TAKEN, "d3h7")).toBe(true);
+    expect(looksBrilliant(GREEK_GIFT, "Bxh7+", cp(130), cp(90), TAKEN, "c1g5")).toBe(false);
+  });
+
+  it("doesn't call a sacrifice brilliant when it throws the advantage away", () => {
+    expect(looksBrilliant(GREEK_GIFT, "Bxh7+", cp(60), cp(-250), TAKEN)).toBe(false);
+  });
+
+  it("doesn't count material won straight back", () => {
+    // Bxf6 Nxf6 gives a bishop for a knight: even.
+    const fen = "r1bqkb1r/pppp1ppp/2n2n2/4p1B1/4P3/2N5/PPPP1PPP/R2QKBNR w KQkq - 4 4";
+    expect(looksBrilliant(fen, "Bxf6", cp(20), cp(20), ["d8f6", "c3d5", "f6d8"])).toBe(false);
+  });
+
+  it("doesn't count a sacrifice the other side declines", () => {
+    expect(looksBrilliant(GREEK_GIFT, "Bxh7+", cp(60), cp(90), ["g8h8", "f3g5", "g7g6"])).toBe(false);
+  });
+
+  it("needs at least one reply to judge", () => {
+    expect(looksBrilliant(GREEK_GIFT, "Bxh7+", cp(60), cp(90), [])).toBe(false);
   });
 });

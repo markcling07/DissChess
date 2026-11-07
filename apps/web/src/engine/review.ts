@@ -1,7 +1,7 @@
 /** Reviews the moves played in a session. One position alone has no history to judge. */
 import { Chess, type Color } from "chess.js";
 import type { Engine } from "./engine";
-import { judgeMove, lineToSan, type MoveQuality } from "./evaluation";
+import { judgeMove, lineToSan, looksBrilliant, type MoveQuality } from "./evaluation";
 import type { Score } from "./uci";
 
 const REVIEW_DEPTH = 12;
@@ -21,6 +21,8 @@ export interface MoveReview {
   readonly quality: MoveQuality | null;
   /** What the engine preferred, when it differs from the move played. */
   readonly better: string | null;
+  /** The engine's expected continuation after the move, in standard notation. */
+  readonly followUp: readonly string[];
 }
 
 export interface GameReview {
@@ -37,14 +39,14 @@ function finishedScore(fen: string): Score | null {
 
 async function evaluate(engine: Engine, fen: string, signal: AbortSignal) {
   const known = finishedScore(fen);
-  if (known) return { score: known, best: null as string | null };
+  if (known) return { score: known, best: null as string | null, pv: [] as readonly string[] };
   const handle = engine.search({ fen, depth: REVIEW_DEPTH, movetimeMs: REVIEW_MOVETIME_MS, multipv: 1 });
   const onAbort = () => handle.cancel();
   signal.addEventListener("abort", onAbort, { once: true });
   try {
     const result = await handle.promise;
     const line = result.lines[0];
-    return { score: line?.score ?? null, best: result.bestMove };
+    return { score: line?.score ?? null, best: result.bestMove, pv: line?.pv ?? [] };
   } finally {
     signal.removeEventListener("abort", onAbort);
   }
@@ -65,10 +67,13 @@ export async function reviewGame(
     const afterResult = await evaluate(engine, move.after, signal);
     if (signal.aborted) return null;
 
-    const quality =
-      beforeResult.score && afterResult.score
-        ? judgeMove(beforeResult.score, afterResult.score, move.color)
-        : null;
+    let quality: MoveQuality | null = null;
+    if (beforeResult.score && afterResult.score) {
+      quality = judgeMove(beforeResult.score, afterResult.score, move.color);
+      if (!quality && looksBrilliant(move.before, move.san, beforeResult.score, afterResult.score, afterResult.pv, beforeResult.best)) {
+        quality = "brilliant";
+      }
+    }
     const betterSan = beforeResult.best ? lineToSan(move.before, [beforeResult.best], 1)[0] : undefined;
     reviewed.push({
       ply,
@@ -76,6 +81,7 @@ export async function reviewGame(
       color: move.color,
       quality,
       better: betterSan && betterSan !== move.san ? betterSan : null,
+      followUp: lineToSan(move.after, afterResult.pv, 4),
     });
     beforeResult = afterResult;
     onProgress(ply + 1, moves.length);

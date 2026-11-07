@@ -148,9 +148,25 @@ export function findInsights(fen: string, lines: readonly EngineLine[]): Insight
   return insights;
 }
 
-export type MoveQuality = "inaccuracy" | "mistake" | "blunder";
+export type MoveQuality = "brilliant" | "inaccuracy" | "mistake" | "blunder";
 
-export const QUALITY_MARK: Record<MoveQuality, string> = { inaccuracy: "?!", mistake: "?", blunder: "??" };
+export const QUALITY_MARK: Record<MoveQuality, string> = {
+  brilliant: "!!",
+  inaccuracy: "?!",
+  mistake: "?",
+  blunder: "??",
+};
+
+export const QUALITY_NAME: Record<MoveQuality, string> = {
+  brilliant: "Brilliant",
+  inaccuracy: "Inaccuracy",
+  mistake: "Mistake",
+  blunder: "Blunder",
+};
+
+export function isError(quality: MoveQuality | null): boolean {
+  return quality !== null && quality !== "brilliant";
+}
 
 /**
  * Judges a move by how much it lowered the mover's chance of winning, using the same thresholds as
@@ -163,4 +179,62 @@ export function judgeMove(before: Score, after: Score, mover: Color): MoveQualit
   if (lost >= 10) return "mistake";
   if (lost >= 5) return "inaccuracy";
   return null;
+}
+
+/**
+ * How much of its win chance a sound sacrifice may give up, on the 0 to 100 scale, when it isn't the
+ * engine's own first choice. The engine's first choice may show a small loss too, from search noise,
+ * so that only needs to stay short of an inaccuracy.
+ */
+const SACRIFICE_SLACK = 2;
+const NOISE_SLACK = 5;
+/** Material a move must give up, after the reply, to count as a sacrifice: more than a pawn. */
+const SACRIFICE_POINTS = 2;
+
+/**
+ * Whether a move looks brilliant: it gives up material, the engine's best replies still leave it
+ * down, and yet it keeps the mover's chances and leaves them at least level. This is a simple check
+ * of our own. Other sites judge brilliance by their own rules, so they won't always agree.
+ *
+ * `reply` is the engine's line from the position after the move, and `engineBest` its first choice
+ * before it, both in UCI notation.
+ */
+export function looksBrilliant(
+  fenBefore: string,
+  san: string,
+  before: Score,
+  after: Score,
+  reply: readonly string[],
+  engineBest: string | null = null,
+): boolean {
+  const chess = new Chess(fenBefore);
+  const mover = chess.turn();
+  const direction = mover === "w" ? 1 : -1;
+  const lost = direction * (winPercent(before) - winPercent(after));
+  const moverChance = mover === "w" ? winPercent(after) : 100 - winPercent(after);
+  if (lost >= NOISE_SLACK || moverChance < 50) return false;
+
+  const start = materialFor(chess, mover);
+  let uci: string;
+  try {
+    const played = chess.move(san);
+    uci = `${played.from}${played.to}${played.promotion ?? ""}`;
+  } catch {
+    return false;
+  }
+  if (uci !== engineBest && lost > SACRIFICE_SLACK) return false;
+  // Checked after each of the other side's replies, up to two, so a trade that wins the piece
+  // straight back isn't counted.
+  let checked = 0;
+  for (const uci of reply.slice(0, 3)) {
+    try {
+      chess.move(parseUciMove(uci));
+    } catch {
+      break;
+    }
+    if (chess.turn() !== mover) continue;
+    if (start - materialFor(chess, mover) < SACRIFICE_POINTS) return false;
+    checked += 1;
+  }
+  return checked > 0;
 }

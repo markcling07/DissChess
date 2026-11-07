@@ -1107,3 +1107,43 @@ button.corners__unsure[aria-pressed="true"] {
   margin-left: 2px;
   color: #c8321e;
 }
+
+.sheet__mark--good {
+  color: #13798a;
+}
+
+.reviewed__move--good {
+  color: #5fd0de;
+}
+
+/* Saving moves as pictures. */
+.clips {
+  display: grid;
+  gap: 12px;
+  padding: 16px;
+  border: 1px solid var(--vinyl-line);
+  border-radius: 8px;
+  background: var(--vinyl-mid);
+}
+
+.clips__fields {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+  gap: 12px;
+}
+
+.clips__thumbs {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(84px, 1fr));
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.clips__thumbs img {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: 4px;
+}

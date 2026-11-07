@@ -122,6 +122,18 @@ describe("setup screen", () => {
     expect((button("Start game") as HTMLButtonElement).disabled).toBe(false);
   });
 
+  it("starts the game with the pasted moves, unless the position was changed after", () => {
+    const onStart = vi.fn();
+    render(<Setup initial={emptySetup()} onStart={onStart} />);
+    fireEvent.change(screen.getByLabelText("Moves"), { target: { value: "1. e4 e5 2. Nf3" } });
+    fireEvent.click(button("Load moves"));
+    fireEvent.click(button("Start game"));
+    expect(onStart).toHaveBeenLastCalledWith(expect.stringMatching(/^rnbqkbnr\/pppp1ppp/), {
+      startFen: "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
+      sans: ["e4", "e5", "Nf3"],
+    });
+  });
+
   it("names the move that can't be played, and keeps the current position", () => {
     render(<Setup initial={standardSetup()} onStart={vi.fn()} />);
     fireEvent.change(screen.getByLabelText("Moves"), { target: { value: "1. e4 e5 2. Ke3" } });

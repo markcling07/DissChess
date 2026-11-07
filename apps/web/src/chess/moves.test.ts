@@ -6,7 +6,11 @@ const GAME_FEN = "r2qkb1r/pb1n4/1ppp1pn1/4p1pB/2P1P3/1PNP4/PB1N1PPP/R2Q1RK1 w kq
 
 describe("reading a move list", () => {
   it("plays the moves from the starting position", () => {
-    expect(positionFromMoves(GAME)).toEqual({ fen: GAME_FEN, played: 22, last: "11... Ng6" });
+    const result = positionFromMoves(GAME);
+    expect(result).toMatchObject({ fen: GAME_FEN, played: 22, last: "11... Ng6" });
+    expect(result.startFen).toBe("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
+    expect(result.sans).toHaveLength(22);
+    expect(result.sans.at(-1)).toBe("Ng6");
   });
 
   it("reads moves copied as a table, with piece figurines apart from the square", () => {

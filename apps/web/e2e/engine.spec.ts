@@ -226,7 +226,7 @@ test.describe("offline", () => {
 
     await context.setOffline(true);
     await page.reload();
-    await expect(page.getByRole("heading", { name: "Photo to Chess" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Diss Chess" })).toBeVisible();
 
     await startFrom(page, START);
     await page.getByRole("button", { name: "Analyze position" }).click();

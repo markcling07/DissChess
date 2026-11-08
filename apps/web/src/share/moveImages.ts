@@ -102,7 +102,7 @@ export function defaultClipStart(moves: readonly ClipMove[], review: GameReview 
 
 export function fileName(frame: MoveFrame, index: number): string {
   const move = frame.label.replace(/\.+\s*/, "-").replace(/[^A-Za-z0-9=-]+/g, "");
-  return `photo-to-chess-${String(index + 1).padStart(2, "0")}-move-${move}.png`;
+  return `diss-chess-${String(index + 1).padStart(2, "0")}-move-${move}.png`;
 }
 
 // --- Drawing --------------------------------------------------------------------------------
@@ -193,7 +193,7 @@ async function drawFrame(
   context.fillStyle = COLORS.quiet;
   context.font = "500 30px Barlow, sans-serif";
   context.textAlign = "right";
-  context.fillText("Photo to Chess", BOARD_X + BOARD_SIZE, 80);
+  context.fillText("Diss Chess", BOARD_X + BOARD_SIZE, 80);
 
   for (const square of allSquares()) {
     const { x, y } = squareAt(square, orientation);

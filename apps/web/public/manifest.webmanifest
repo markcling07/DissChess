@@ -1,6 +1,6 @@
 {
-  "name": "Photo to Chess",
-  "short_name": "Photo Chess",
+  "name": "Diss Chess",
+  "short_name": "Diss Chess",
   "description": "Set up any chess position and play on from it.",
   "start_url": "./",
   "scope": "./",

@@ -1,4 +1,4 @@
-# Photo to Chess
+# Diss Chess
 
 Turns a photo or screenshot of a chessboard into a playable game. It ships first as an installable web app, then as iOS and Android store apps built from the same code.
 

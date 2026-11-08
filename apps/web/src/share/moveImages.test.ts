@@ -52,7 +52,7 @@ describe("choosing moves to save as pictures", () => {
 
   it("names files in order, safe for any phone", () => {
     const [white, black] = buildFrames(MOVES, null, 6, 2);
-    expect(fileName(white!, 0)).toBe("photo-to-chess-01-move-4-Nxe5.png");
-    expect(fileName(black!, 1)).toBe("photo-to-chess-02-move-4-Qg5.png");
+    expect(fileName(white!, 0)).toBe("diss-chess-01-move-4-Nxe5.png");
+    expect(fileName(black!, 1)).toBe("diss-chess-02-move-4-Qg5.png");
   });
 });

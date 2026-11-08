@@ -19,7 +19,7 @@ export function App() {
 
   return (
     <>
-      {screen !== "input" && <header className="masthead">Photo to Chess</header>}
+      {screen !== "input" && <header className="masthead">Diss Chess</header>}
       {screen === "input" && (
         <InputScreen
           onRecognized={(result) => {

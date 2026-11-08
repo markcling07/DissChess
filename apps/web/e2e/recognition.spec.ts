@@ -96,7 +96,7 @@ async function useScriptedReading(page: Page, reply: object) {
 
 test.beforeEach(async ({ page }) => {
   await page.goto("/");
-  await expect(page.getByRole("heading", { name: "Photo to Chess" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Diss Chess" })).toBeVisible();
 });
 
 test.describe("reading real images with the real service", () => {

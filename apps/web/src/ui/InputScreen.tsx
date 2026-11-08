@@ -185,7 +185,7 @@ export function InputScreen({
 
   return (
     <main className="input">
-      <h1 className="input__title">Photo to Chess</h1>
+      <h1 className="input__title">Diss Chess</h1>
       <p className="lede">Turn a screenshot of a chessboard into a game you can play.</p>
 
       <input

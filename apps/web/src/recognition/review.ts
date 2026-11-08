@@ -6,10 +6,8 @@
 import type { RecognitionSuccess } from "@photo-to-chess/contract";
 import type { Square } from "chess.js";
 import {
-  ALL_CASTLING,
-  NO_CASTLING,
+  canHoldCastlingRight,
   parsePlacement,
-  STANDARD_PLACEMENT,
   type PieceCode,
   type Placement,
   type PositionSetup,
@@ -47,8 +45,14 @@ export function setupFromRecognition(result: RecognitionSuccess): PositionSetup 
   return {
     placement,
     sideToMove: null,
-    // The exact starting position is the one case where the pieces settle these rights.
-    castling: result.placement === STANDARD_PLACEMENT ? ALL_CASTLING : NO_CASTLING,
+    // An image can't show whether a king or rook has moved. Ones on their home squares usually
+    // haven't, and the user can untick these before the game starts.
+    castling: {
+      K: canHoldCastlingRight(placement, "K"),
+      Q: canHoldCastlingRight(placement, "Q"),
+      k: canHoldCastlingRight(placement, "k"),
+      q: canHoldCastlingRight(placement, "q"),
+    },
     enPassant: null,
     halfmove: 0,
     fullmove: 1,

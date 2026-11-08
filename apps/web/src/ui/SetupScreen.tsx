@@ -98,6 +98,23 @@ export function SetupScreen({
     return squares;
   }, [issues, review]);
 
+  /** The position with this side to move, or null while something stops the game starting. */
+  function startingAs(color: Color): PositionSetup | null {
+    const chosen = resolveSetup({ ...setup, sideToMove: color });
+    return unresolved === 0 && !hasBlockingIssue(validatePosition(chosen)) ? chosen : null;
+  }
+
+  function startAs(color: Color) {
+    const chosen = startingAs(color);
+    if (!chosen) return;
+    // Kept for Edit position, which comes back here.
+    dispatch({ type: "setSide", side: color });
+    onStart(toFen(chosen));
+  }
+
+  const quickSides: readonly Color[] = forcedSide ? [forcedSide] : ["w", "b"];
+  const canStartNow = quickSides.some((color) => startingAs(color) !== null);
+
   function handleTap(square: Square) {
     if (tool === "erase") dispatch({ type: "remove", square });
     else if (tool) dispatch({ type: "place", square, piece: tool });
@@ -157,9 +174,25 @@ export function SetupScreen({
         {locked ? (
           <>
             <p className="hint">
-              This is what was read from your image. Check it, then tap Start game to play. Pieces only move once the
-              game has started.
+              {canStartNow
+                ? "Does this match your image? Choose who plays next to start the game."
+                : unresolved > 0
+                  ? "Some squares need checking first. They're marked on the board and listed with the reading."
+                  : "This position has a problem to fix first. It's listed with the settings."}
             </p>
+            <div className="start-choice" role="group" aria-label="Start the game">
+              {quickSides.map((color) => (
+                <button
+                  key={color}
+                  type="button"
+                  className="primary"
+                  disabled={startingAs(color) === null}
+                  onClick={() => startAs(color)}
+                >
+                  {SIDE_NAME[color]} to play
+                </button>
+              ))}
+            </div>
             <div className="actions">
               <button type="button" onClick={() => setFixing(true)}>
                 Fix a piece

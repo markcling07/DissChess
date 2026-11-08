@@ -327,6 +327,20 @@ test.describe("checking an uncertain reading", () => {
     await expect(page.getByRole("button", { name: "Fix a piece" })).toBeVisible();
   });
 
+  test("one tap under the board starts the game with that side to move", async ({ page }) => {
+    await useScriptedReading(page, scriptedReading(MIDGAME));
+    await page.getByRole("button", { name: "Black to play" }).click();
+    await expect(page.getByRole("button", { name: "Undo" })).toBeVisible();
+    await expect(page.locator(".status")).toHaveText("Black to move.");
+    expect(await piecesSorted(page)).toEqual(expectedPieces(MIDGAME));
+  });
+
+  test("the start buttons wait until flagged squares are checked", async ({ page }) => {
+    await useScriptedReading(page, scriptedReading(MIDGAME, UNSURE));
+    await expect(page.getByRole("button", { name: "White to play" })).toBeDisabled();
+    await expect(page.getByText("Some squares need checking first.")).toBeVisible();
+  });
+
   test("editing a flagged square on the board also resolves it", async ({ page }) => {
     await useScriptedReading(page, scriptedReading(MIDGAME, UNSURE));
     await page.getByRole("button", { name: "Fix a piece" }).click();

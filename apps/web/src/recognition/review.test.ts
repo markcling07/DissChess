@@ -52,13 +52,17 @@ describe("setupFromRecognition", () => {
   it("doesn't invent details the image can't show", () => {
     const setup = setupFromRecognition(result(MIDGAME));
     expect(setup.sideToMove).toBeNull();
-    expect(setup.castling).toEqual({ K: false, Q: false, k: false, q: false });
     expect(setup.enPassant).toBeNull();
     expect(toPlacementString(setup.placement)).toBe(MIDGAME);
     expect(hasBlockingIssue(validatePosition(setup))).toBe(true);
   });
 
-  it("prefills castling only for the exact starting position, and still asks whose turn it is", () => {
+  it("prefills castling wherever king and rook are still on their home squares", () => {
+    const setup = setupFromRecognition(result("r1bqkb1r/ppp2ppp/2n2n2/3Pp1N1/2B5/8/PPPP1PPP/RNB1K3"));
+    expect(setup.castling).toEqual({ K: false, Q: true, k: true, q: true });
+  });
+
+  it("prefills castling for the starting position, and still asks whose turn it is", () => {
     const setup = setupFromRecognition(result(STANDARD_PLACEMENT));
     expect(setup.castling).toEqual({ K: true, Q: true, k: true, q: true });
     expect(setup.sideToMove).toBeNull();

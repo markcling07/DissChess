@@ -113,22 +113,14 @@ describe("setup screen", () => {
     expect(screen.getByTestId("board").textContent).toBe("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR");
   });
 
-  it("loads the position after a list of moves, with the side to move set", () => {
-    render(<Setup initial={emptySetup()} onStart={vi.fn()} />);
-    fireEvent.change(screen.getByLabelText("Moves"), { target: { value: "1. e4 e5 2. Nf3 Nc6 3. Bb5" } });
-    fireEvent.click(button("Load moves"));
-    expect(screen.getByTestId("board").textContent).toBe("r1bqkbnr/pppp1ppp/2n5/1B2p3/4P3/5N2/PPPP1PPP/RNBQK2R");
-    expect(screen.getByRole("status").textContent).toBe("Loaded the position after 3. Bb5. Black to move.");
-    expect((button("Start game") as HTMLButtonElement).disabled).toBe(false);
-  });
-
-  it("starts the game with the pasted moves, unless the position was changed after", () => {
+  it("opens the game straight away with pasted moves, so the rules apply", () => {
     const onStart = vi.fn();
     render(<Setup initial={emptySetup()} onStart={onStart} />);
     fireEvent.change(screen.getByLabelText("Moves"), { target: { value: "1. e4 e5 2. Nf3" } });
     fireEvent.click(button("Load moves"));
-    fireEvent.click(button("Start game"));
-    expect(onStart).toHaveBeenLastCalledWith(expect.stringMatching(/^rnbqkbnr\/pppp1ppp/), {
+    expect(screen.getByTestId("board").textContent).toBe("rnbqkbnr/pppp1ppp/8/4p3/4P3/5N2/PPPP1PPP/RNBQKB1R");
+    expect(onStart).toHaveBeenCalledOnce();
+    expect(onStart).toHaveBeenLastCalledWith("rnbqkbnr/pppp1ppp/8/4p3/4P3/5N2/PPPP1PPP/RNBQKB1R b KQkq - 1 2", {
       startFen: "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
       sans: ["e4", "e5", "Nf3"],
     });

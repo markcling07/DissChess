@@ -209,6 +209,29 @@ test.describe("choosing pieces", () => {
 });
 
 test.describe("pasting moves", () => {
+  test("the moves open a real game, where a pawn can't capture sideways", async ({ page }) => {
+    await page.getByText("Paste moves").click();
+    await page.getByLabel("Moves", { exact: true }).fill("1. e4 e5 2. Nf3 Nf6 3. Bc4 Nc6 4. Ng5 d5 5. exd5 h6");
+    await page.getByRole("button", { name: "Load moves" }).click();
+    await expect(page.getByRole("button", { name: "Undo" })).toBeVisible();
+    await expect(status(page)).toHaveText("White to move.");
+
+    await tapMove(page, "d5", "e5");
+    let board = await pieces(page);
+    expect(board.get("d5")).toBe("white pawn");
+    expect(board.get("e5")).toBe("black pawn");
+    await expect(status(page)).toHaveText("White to move.");
+
+    // Taps after the refused move can leave a selection, so a flip there and back clears it.
+    await page.getByRole("button", { name: "Flip board" }).click();
+    await page.getByRole("button", { name: "Flip board" }).click();
+    await tapMove(page, "d5", "c6");
+    board = await pieces(page);
+    expect(board.get("c6")).toBe("white pawn");
+    expect(board.has("d5")).toBe(false);
+    await expect(status(page)).toHaveText("Black to move.");
+  });
+
   test("loads the position after the moves, and the game plays on from it", async ({ page }) => {
     await page.getByText("Paste moves").click();
     await page
@@ -217,10 +240,8 @@ test.describe("pasting moves", () => {
         "1. c4 b6 2. b3 c6 3. ♗ b2 ♝ b7 4. ♘ f3 f6 5. d3 e5 6. e4 d6 7. ♗ e2 ♞ d7 8. ♘ c3 ♞ e7 9. O-O g5 10. ♘ d2 h5 11. ♗ xh5+ ♞ g6",
       );
     await page.getByRole("button", { name: "Load moves" }).click();
-    await expect(page.getByText("Loaded the position after 11... Ng6. White to move.")).toBeVisible();
-    await expect(page.getByText("r2qkb1r/pb1n4/1ppp1pn1/4p1pB/2P1P3/1PNP4/PB1N1PPP/R2Q1RK1 w kq - 1 12")).toBeVisible();
-
-    await page.getByRole("button", { name: "Start game" }).click();
+    await expect(page.getByRole("button", { name: "Undo" })).toBeVisible();
+    await expect(status(page)).toHaveText("White to move.");
     await tapMove(page, "h5", "g6");
     expect((await pieces(page)).get("g6")).toBe("white bishop");
     await expect(status(page)).toHaveText("Black to move, in check.");

@@ -72,10 +72,8 @@ export function SetupScreen({
   const [fenDraft, setFenDraft] = useState("");
   const [fenMessage, setFenMessage] = useState<{ text: string; isError: boolean } | null>(null);
   const [movesDraft, setMovesDraft] = useState("");
-  const [movesMessage, setMovesMessage] = useState<{ text: string; isError: boolean } | null>(null);
-  const [pasted, setPasted] = useState<{ fen: string; moves: PastedMoves } | null>(() =>
-    lastStart?.moves ? { fen: lastStart.fen, moves: lastStart.moves } : null,
-  );
+  const [movesError, setMovesError] = useState<string | null>(null);
+  const pasted = lastStart?.moves ? { fen: lastStart.fen, moves: lastStart.moves } : null;
 
   const resolved = useMemo(() => resolveSetup(setup), [setup]);
   const issues = useMemo(() => validatePosition(resolved), [resolved]);
@@ -123,13 +121,13 @@ export function SetupScreen({
   function loadMoves() {
     try {
       const result = positionFromMoves(movesDraft);
-      const setupFromMoves = parseFen(result.fen);
-      dispatch({ type: "load", setup: setupFromMoves });
-      setPasted({ fen: result.fen, moves: { startFen: result.startFen, sans: result.sans } });
-      const side = SIDE_NAME[setupFromMoves.sideToMove ?? "w"];
-      setMovesMessage({ text: `Loaded the position after ${result.last}. ${side} to move.`, isError: false });
+      // Kept for Edit position, which comes back here.
+      dispatch({ type: "load", setup: parseFen(result.fen) });
+      // A list of moves is already a legal game, so it goes straight to the board that enforces the
+      // rules. This screen lets pieces go anywhere, which is what arranging a position needs.
+      onStart(result.fen, { startFen: result.startFen, sans: result.sans });
     } catch (error) {
-      setMovesMessage({ text: (error as Error).message, isError: true });
+      setMovesError((error as Error).message);
     }
   }
 
@@ -335,7 +333,7 @@ export function SetupScreen({
           <summary>Paste moves</summary>
           <p className="hint">
             Type or paste the moves played so far, like 1. e4 e5 2. Nf3. A PGN or a list copied from a game page works
-            too.
+            too. The game opens at the last move, ready to play on.
           </p>
           <label className="field">
             <span>Moves</span>
@@ -351,9 +349,9 @@ export function SetupScreen({
           <button type="button" onClick={loadMoves}>
             Load moves
           </button>
-          {movesMessage && (
-            <p className={movesMessage.isError ? "hint hint--error" : "hint"} role="status">
-              {movesMessage.text}
+          {movesError && (
+            <p className="hint hint--error" role="status">
+              {movesError}
             </p>
           )}
         </details>

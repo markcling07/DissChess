@@ -54,9 +54,11 @@ test.describe("playing the computer", () => {
     expect((await pieces(page)).size).toBe(32);
   });
 
-  test("it moves first when it's the computer's turn, and the board faces you", async ({ page }) => {
+  test("it moves first when it's the computer's turn, and the board only flips when asked", async ({ page }) => {
     await startFrom(page, START);
     await chooseOpponent(page, "Black");
+    await expect(page.locator(".board.orientation-black")).toHaveCount(0);
+    await page.getByRole("button", { name: "Flip board" }).click();
     await expect(page.locator(".board.orientation-black")).toHaveCount(1);
     await expect(status(page)).toHaveText("Black to move.", ENGINE_TIMEOUT);
     await expect(page.locator(".sheet__row").first().locator(".sheet__move").first()).not.toBeEmpty();

@@ -327,7 +327,6 @@ export function GameScreen({
             onClose={() => setChoosingOpponent(false)}
             onStart={(you, strength) => {
               setOpponent({ computer: you === "w" ? "b" : "w", strength });
-              setOrientation(you);
               setChoosingOpponent(false);
               setEngineProblem(false);
             }}

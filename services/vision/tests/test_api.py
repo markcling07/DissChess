@@ -271,3 +271,9 @@ def test_corners_are_refused_when_no_photo_reader_is_installed():
     body = recognition_response_adapter.validate_python(response.json())
     assert body.code == "photos_unsupported"
     assert not body.retryable
+
+
+def test_uptime_checkers_can_use_head_on_the_health_check():
+    client = client_for(Scripted())
+    assert client.get("/healthz").json() == {"status": "ok"}
+    assert client.head("/healthz").status_code == 200

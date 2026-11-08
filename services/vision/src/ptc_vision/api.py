@@ -169,7 +169,8 @@ def create_app(
         response.headers["Cache-Control"] = "no-store"
         return response
 
-    @app.get("/healthz")
+    # HEAD too, as uptime checkers such as UptimeRobot use it and would otherwise report a failure.
+    @app.api_route("/healthz", methods=["GET", "HEAD"])
     async def health() -> dict[str, str]:
         return {"status": "ok"}
 

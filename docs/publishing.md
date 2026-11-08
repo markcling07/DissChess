@@ -61,12 +61,20 @@ A budget alert in the billing console is worth setting too.
 
 ### Render, the simpler alternative
 
-1. **New**, then **Web Service**, and connect the GitHub repository.
-2. **Root directory** `services/vision`, **Runtime** Docker. **Health check path** `/healthz`.
-3. **Environment variable** `PTC_ALLOWED_ORIGINS` as above.
+No card is needed for the free plan. This is how the live app is hosted.
 
-The free plan sleeps after a while without use, and waking it takes up to a minute, which a user
-would see as a slow first read. A paid instance stays awake.
+1. **New**, then **Web Service**. For a public repository, **Public Git Repository** with its
+   address needs no GitHub app, but then Render doesn't redeploy on push: use **Manual Deploy** after
+   updates. **Git Provider** connects GitHub and redeploys automatically.
+2. **Language** Docker, **Branch** `main`, **Region** the one nearest your users, **Root directory**
+   `services/vision`. The Dockerfile path can stay empty, as it defaults to the one in that folder.
+3. **Instance type:** Free. Render preselects a paid plan, so check this.
+4. **Environment variable** `PTC_ALLOWED_ORIGINS` as above. Under **Advanced**, **Health check path**
+   `/healthz`.
+
+The service's address is `https://<name>.onrender.com`. The free plan sleeps after about 15 minutes
+without use, and waking it takes up to a minute, which a user sees as a slow first read. It also
+has a tenth of a CPU, so reading takes a few seconds. A paid instance stays awake and is faster.
 
 ## 3. Host the web app on Cloudflare Pages
 
@@ -81,8 +89,9 @@ would see as a slow first read. A paid instance stays awake.
    - `VITE_RECOGNITION_URL` = the image reader's address from step 2, with no slash at the end
    - `VITE_SOURCE_URL` = the GitHub repository's address. It's shown as a source code link on the
      start screen.
-   - If the build fails while installing before your build command runs, also set
-     `SKIP_DEPENDENCY_INSTALL` = `1`. The build command installs dependencies itself.
+   - `SKIP_DEPENDENCY_INSTALL` = `1`. Required: without it, Cloudflare finds the top-level
+     `pyproject.toml`, which only holds tool settings, tries `pip install .`, and the build fails.
+     The build command installs the web app's dependencies itself.
 4. Deploy. The address is shown when it's done, such as `https://photo-to-chess.pages.dev`. If it
    differs from what you put in `PTC_ALLOWED_ORIGINS`, update that variable on the image reader.
 

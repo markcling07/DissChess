@@ -33,7 +33,7 @@
 | M3 | Photo model comparison: chesscog and a detector mapped through the board's perspective, tested on ChessReD2K | A choice backed by numbers, and photo targets reset to what's achievable | Comparison run. **Neither is usable: no held-out board was read perfectly.** Choice and targets still to decide. See [the results](photo-comparison.md) |
 | M4 | Photo recognition in production: training, calibration, orientation | Meets the M3 targets on chess sets kept out of training | In progress. The user marks the board's corners and White's side, behind a switch (`?photos=1`). Detector retrained on eleven more chess sets: on held-out photos, 1.7% of squares wrong and 44% of boards perfect, with true corners and White's side marked. Untested on other sets and real phones. See [the results](photo-comparison.md) |
 | M5 | Stockfish play and analysis, with offline caching for both | Works from any reconstructed position | Done, using the 1.9 MB Lite build. Real phones are still to check in M6 |
-| M6 | Full error handling, service worker and install prompts, responsive UI, full test list, deployment docs | Every error case in the spec has a test, and it has been tried on real phones | |
+| M6 | Full error handling, service worker and install prompts, responsive UI, full test list, deployment docs | Every error case in the spec has a test, and it has been tried on real phones | Started. Publishing guide, the service's Dockerfile and host headers written, see [publishing.md](publishing.md). The Dockerfile is untested, as Docker isn't installed here |
 | M7 | Capacitor wrapper, native camera, icons, store listings, submission | Accepted by both stores, after licensing advice | |
 
 ## Open items

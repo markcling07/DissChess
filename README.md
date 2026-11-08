@@ -2,7 +2,7 @@
 
 Turns a photo or screenshot of a chessboard into a playable game. It ships first as an installable web app, then as iOS and Android store apps built from the same code.
 
-**Status: M0, M1, M2 and M5 built, with M2's accuracy target not yet met.** You can upload, paste or photograph a screenshot of a digital board, check what was read, and play on from it, or set up any position by hand. You can then play another person or the computer, and analyse the position. Playing and analysing also work offline. Recognition accuracy varies by piece set, so see [the model's results](services/vision/src/ptc_vision/models/README.md). Photos of real boards aren't built yet. See [docs/plan.md](docs/plan.md) for the milestones and decisions.
+**Status: M0 to M3 and M5 built, M4 in progress, with M2's accuracy target not yet met.** You can upload, paste or photograph a screenshot of a digital board, check what was read, and play on from it, set up any position by hand, or paste a list of moves. You can then play another person or the computer, analyse the position, and save moves as pictures. Playing and analysing also work offline. Recognition accuracy varies by piece set, so see [the model's results](services/vision/src/ptc_vision/models/README.md). Photos of real boards work behind `?photos=1`, with the corners marked by hand, and are still being tested. See [docs/plan.md](docs/plan.md) for the milestones and decisions, and [docs/publishing.md](docs/publishing.md) for putting it online.
 
 ## Layout
 

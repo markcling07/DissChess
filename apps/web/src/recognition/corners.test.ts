@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   cornerProblem,
+  cornersCanHelp,
   cornersParameter,
   defaultCorners,
   edgeMiddles,
@@ -97,4 +98,15 @@ describe("White's side", () => {
   it("writes the point as the service reads it", () => {
     expect(whiteParameter({ x: 0.5, y: 0.85 })).toBe("0.5000,0.8500");
   });
+});
+
+describe("offering to mark corners", () => {
+  it.each(["no_board_detected", "board_incomplete", "multiple_boards_detected", "image_too_blurry", "recognition_timeout"])(
+    "helps after %s",
+    (code) => expect(cornersCanHelp(code)).toBe(true),
+  );
+
+  it.each(["file_too_large", "unsupported_media_type", "internal_error"])("doesn't help after %s", (code) =>
+    expect(cornersCanHelp(code)).toBe(false),
+  );
 });

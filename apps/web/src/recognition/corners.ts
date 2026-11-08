@@ -10,6 +10,19 @@ export function photosEnabled(search: string = globalThis.location?.search ?? ""
   return import.meta.env.VITE_PHOTO_CORNERS === "1" || new URLSearchParams(search).get("photos") === "1";
 }
 
+/** Why the screenshot reader can give up on a photo of a real board, where marked corners can help. */
+const CORNERS_CAN_HELP: ReadonlySet<string> = new Set([
+  "no_board_detected",
+  "board_incomplete",
+  "multiple_boards_detected",
+  "image_too_blurry",
+  "recognition_timeout",
+]);
+
+export function cornersCanHelp(failureCode: string): boolean {
+  return CORNERS_CAN_HELP.has(failureCode);
+}
+
 /** A starting rectangle, inset from the edges, for the user to drag onto the board. */
 export function defaultCorners(): Corners {
   return [

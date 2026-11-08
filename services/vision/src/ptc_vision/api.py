@@ -125,6 +125,29 @@ def create_app(
     app = FastAPI(title="Photo to Chess recognition", docs_url=None, redoc_url=None)
     limiter = rate_limiter or RateLimiter()
     slots = asyncio.Semaphore(MAX_CONCURRENT)
+
+    async def run_limited(
+        work: Callable[[], RecognitionSuccess | RecognitionFailure],
+    ) -> RecognitionSuccess | RecognitionFailure:
+        """Runs recognition on a worker thread, within the time limit and the number of slots.
+
+        A thread can't be stopped, so one that runs past the limit keeps working after the reply has
+        gone. Its slot is only given back when it really finishes. Otherwise slow images would pile
+        up and starve a small server until it stops answering altogether.
+        """
+
+        def finished(task: asyncio.Task[RecognitionSuccess | RecognitionFailure]) -> None:
+            slots.release()
+            if not task.cancelled() and task.exception() is not None:
+                logger.error("Recognition failed after its reply", exc_info=task.exception())
+
+        async with asyncio.timeout(timeout_seconds):
+            await slots.acquire()
+            task = asyncio.create_task(asyncio.to_thread(work))
+            task.add_done_callback(finished)
+            # Shielded, because cancelling the task would give the slot back too early.
+            return await asyncio.shield(task)
+
     recognizer = recognizer_factory()
     photo_recognizer = photo_recognizer_factory()
 
@@ -213,15 +236,13 @@ def create_app(
                 )
 
         try:
-            async with slots:
-                # A worker thread, so a slow image doesn't hold up other requests.
-                if corners is not None and photo_recognizer is not None:
-                    work = asyncio.to_thread(
-                        photo_recognizer.recognize, bytes(body), corners, white
-                    )
-                else:
-                    work = asyncio.to_thread(recognizer.recognize, bytes(body))
-                result = await asyncio.wait_for(work, timeout_seconds)
+            image = bytes(body)
+            if corners is not None and photo_recognizer is not None:
+                tapped = corners
+                reader = photo_recognizer
+                result = await run_limited(lambda: reader.recognize(image, tapped, white))
+            else:
+                result = await run_limited(lambda: recognizer.recognize(image))
         except TimeoutError:
             return _failure_response(
                 RecognitionFailure(

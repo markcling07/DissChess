@@ -61,7 +61,9 @@ A budget alert in the billing console is worth setting too.
 
 ### Render, the simpler alternative
 
-No card is needed for the free plan. This is how the live app is hosted.
+No card is needed for the free plan, but it gives only a tenth of a CPU. A photo can take longer
+than the 20-second limit there, and the service stopped answering when one was uploaded. Use it for
+trying things out, or choose a paid instance.
 
 1. **New**, then **Web Service**. For a public repository, **Public Git Repository** with its
    address needs no GitHub app, but then Render doesn't redeploy on push: use **Manual Deploy** after
@@ -75,6 +77,18 @@ No card is needed for the free plan. This is how the live app is hosted.
 The service's address is `https://<name>.onrender.com`. The free plan sleeps after about 15 minutes
 without use, and waking it takes up to a minute, which a user sees as a slow first read. It also
 has a tenth of a CPU, so reading takes a few seconds. A paid instance stays awake and is faster.
+
+### Hugging Face Spaces, free with no card
+
+A free Space has 2 CPUs and 16 GB of memory, and sleeps after about two days without use.
+
+1. Create a new **Space**: SDK **Docker**, blank template, hardware **CPU basic**, visibility Public.
+2. Add the two files from `deploy/huggingface` to the Space. They install the service from GitHub, so
+   the Space needs no code or models of its own. Change the repository address and
+   `PTC_ALLOWED_ORIGINS` in the Dockerfile if yours differ.
+3. When it's built, the address is `https://<user>-<space>.hf.space`. Use it for
+   `VITE_RECOGNITION_URL` in step 3. After changing the service, use **Factory rebuild** in the
+   Space's settings to pick up the latest `main`.
 
 ## 3. Host the web app on Cloudflare Pages
 

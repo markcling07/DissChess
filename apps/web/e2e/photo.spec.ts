@@ -136,6 +136,13 @@ test.describe("with photos switched on", () => {
     expect(after).toEqual(before);
   });
 
+  test("corners are offered when a photo's board looks incomplete", async ({ page }) => {
+    await page.route("**/api/v1/recognize**", (route) =>
+      route.fulfill({ status: 422, json: failure("board_incomplete", "Part of the board is cut off.") }),
+    );
+    await openCornerStep(page);
+  });
+
   test("a marker can be moved with the keyboard", async ({ page }) => {
     await scriptService(page);
     await openCornerStep(page);

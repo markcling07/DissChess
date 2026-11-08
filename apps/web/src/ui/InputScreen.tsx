@@ -1,7 +1,7 @@
 import type { RecognitionSuccess } from "@photo-to-chess/contract";
 import { useCallback, useEffect, useRef, useState, type ChangeEvent, type DragEvent } from "react";
 import { recognizeImage } from "../recognition/api";
-import { photosEnabled, type Corner, type Corners } from "../recognition/corners";
+import { cornersCanHelp, photosEnabled, type Corner, type Corners } from "../recognition/corners";
 import { ACCEPT_ATTRIBUTE, ImageProblem, prepareImage } from "../recognition/prepareImage";
 import { CameraCapture } from "./CameraCapture";
 import { CornerPicker } from "./CornerPicker";
@@ -64,7 +64,7 @@ export function InputScreen({
         return;
       }
       // The screenshot reader doesn't find real boards, so offer to mark the corners instead.
-      const offerCorners = photos && !corners && result.code === "no_board_detected";
+      const offerCorners = photos && !corners && cornersCanHelp(result.code);
       setStage({
         kind: "problem",
         message: result.message,

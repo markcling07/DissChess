@@ -1,4 +1,5 @@
 import io
+import threading
 import time
 
 import pytest
@@ -168,6 +169,38 @@ def test_configured_origin_is_allowed(monkeypatch):
     assert allowed.headers["access-control-allow-origin"] == "https://app.test"
     other = client.post(URL, content=png(), headers={"Origin": "https://other.test"})
     assert "access-control-allow-origin" not in other.headers
+
+
+class Blocking(Scripted):
+    """Stays busy until released, like an image too slow for a small server."""
+
+    def __init__(self):
+        super().__init__()
+        self.release = threading.Event()
+        self.started = 0
+
+    def recognize(self, image: bytes):
+        self.started += 1
+        self.release.wait(10)
+        return super().recognize(image)
+
+
+def test_an_image_that_timed_out_keeps_its_slot_until_it_finishes():
+    blocking = Blocking()
+    # As a context manager, so every request shares one event loop, as on a real server.
+    with client_for(blocking, timeout_seconds=0.05) as client:
+        codes = [client.post(URL, content=png()).json()["code"] for _ in range(3)]
+        assert codes == ["recognition_timeout"] * 3
+        # Both slots are still busy, so the third image never started.
+        assert blocking.started == 2
+
+        blocking.release.set()
+        for _ in range(100):
+            if client.post(URL, content=png()).status_code == 200:
+                break
+            time.sleep(0.02)
+        else:
+            pytest.fail("the slots were never given back")
 
 
 class TappedScripted(Scripted):

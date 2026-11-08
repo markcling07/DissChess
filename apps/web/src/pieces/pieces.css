@@ -1,0 +1,37 @@
+/* Piece artwork: Cburnett by Colin M.L. Burnett, GPL-2.0-or-later. See cburnett/LICENSE.md. */
+.cg-wrap piece.pawn.white {
+  background-image: url("./cburnett/wP.svg");
+}
+.cg-wrap piece.knight.white {
+  background-image: url("./cburnett/wN.svg");
+}
+.cg-wrap piece.bishop.white {
+  background-image: url("./cburnett/wB.svg");
+}
+.cg-wrap piece.rook.white {
+  background-image: url("./cburnett/wR.svg");
+}
+.cg-wrap piece.queen.white {
+  background-image: url("./cburnett/wQ.svg");
+}
+.cg-wrap piece.king.white {
+  background-image: url("./cburnett/wK.svg");
+}
+.cg-wrap piece.pawn.black {
+  background-image: url("./cburnett/bP.svg");
+}
+.cg-wrap piece.knight.black {
+  background-image: url("./cburnett/bN.svg");
+}
+.cg-wrap piece.bishop.black {
+  background-image: url("./cburnett/bB.svg");
+}
+.cg-wrap piece.rook.black {
+  background-image: url("./cburnett/bR.svg");
+}
+.cg-wrap piece.queen.black {
+  background-image: url("./cburnett/bQ.svg");
+}
+.cg-wrap piece.king.black {
+  background-image: url("./cburnett/bK.svg");
+}

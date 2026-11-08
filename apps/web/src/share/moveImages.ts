@@ -6,7 +6,6 @@
 import { Chess, type Color, type Square } from "chess.js";
 import { numberMoves, QUALITY_MARK, QUALITY_NAME, isError, type MoveQuality } from "../engine/evaluation";
 import type { GameReview } from "../engine/review";
-import { pieceSet, pieceUrl, type PieceCode } from "../pieces/sets";
 
 export interface ClipMove {
   readonly san: string;
@@ -108,22 +107,29 @@ export function fileName(frame: MoveFrame, index: number): string {
 
 // --- Drawing --------------------------------------------------------------------------------
 
+const PIECE_URLS = import.meta.glob("../pieces/cburnett/*.svg", {
+  eager: true,
+  query: "?url",
+  import: "default",
+}) as Record<string, string>;
+
 const sprites = new Map<string, Promise<HTMLCanvasElement>>();
 
-/** The chosen set's artwork, sized for one square and toned down where the board does that too. */
-function sprite(set: string, code: PieceCode, size: number): Promise<HTMLCanvasElement> {
-  const key = `${set}-${code}-${size}`;
+/** The board's artwork, sized for one square. */
+function sprite(code: string, size: number): Promise<HTMLCanvasElement> {
+  const key = `${code}-${size}`;
   let cached = sprites.get(key);
   if (!cached) {
-    cached = loadSprite(set, code, size);
+    cached = loadSprite(code, size);
     cached.catch(() => sprites.delete(key));
     sprites.set(key, cached);
   }
   return cached;
 }
 
-async function loadSprite(set: string, code: PieceCode, size: number): Promise<HTMLCanvasElement> {
-  const url = pieceUrl(set, code);
+async function loadSprite(code: string, size: number): Promise<HTMLCanvasElement> {
+  const url = PIECE_URLS[`../pieces/cburnett/${code}.svg`];
+  if (!url) throw new Error(`No artwork for ${code}`);
   // Some browsers won't draw an SVG with no size of its own, so it's given one.
   const text = (await (await fetch(url)).text()).replace("<svg ", `<svg width="${size}" height="${size}" `);
   const objectUrl = URL.createObjectURL(new Blob([text], { type: "image/svg+xml" }));
@@ -134,29 +140,11 @@ async function loadSprite(set: string, code: PieceCode, size: number): Promise<H
     const canvas = document.createElement("canvas");
     canvas.width = size;
     canvas.height = size;
-    const context = canvas.getContext("2d")!;
-    context.drawImage(image, 0, 0, size, size);
-    if (pieceSet(set).muted) desaturate(context, size);
+    canvas.getContext("2d")!.drawImage(image, 0, 0, size, size);
     return canvas;
   } finally {
     URL.revokeObjectURL(objectUrl);
   }
-}
-
-/** The same toning as the board's CSS filter for muted sets, saturate(0.15), done by hand. */
-function desaturate(context: CanvasRenderingContext2D, size: number) {
-  const pixels = context.getImageData(0, 0, size, size);
-  const data = pixels.data;
-  for (let i = 0; i < data.length; i += 4) {
-    const r = data[i]!;
-    const g = data[i + 1]!;
-    const b = data[i + 2]!;
-    const grey = 0.2126 * r + 0.7152 * g + 0.0722 * b;
-    data[i] = grey + 0.15 * (r - grey);
-    data[i + 1] = grey + 0.15 * (g - grey);
-    data[i + 2] = grey + 0.15 * (b - grey);
-  }
-  context.putImageData(pixels, 0, 0);
 }
 
 function squareAt(square: Square, orientation: Color): { x: number; y: number } {
@@ -191,7 +179,6 @@ async function drawFrame(
   index: number,
   total: number,
   orientation: Color,
-  set: string,
 ) {
   const chess = new Chess(frame.after);
 
@@ -248,7 +235,7 @@ async function drawFrame(
 
   const pieces = chess.board().flat().filter((piece) => piece !== null);
   const images = await Promise.all(
-    pieces.map((piece) => sprite(set, `${piece.color}${piece.type.toUpperCase()}` as PieceCode, SQUARE)),
+    pieces.map((piece) => sprite(`${piece.color}${piece.type.toUpperCase()}`, SQUARE)),
   );
   pieces.forEach((piece, i) => {
     const { x, y } = squareAt(piece.square, orientation);
@@ -298,12 +285,8 @@ function toPng(canvas: HTMLCanvasElement): Promise<Blob> {
   });
 }
 
-/** Draws each frame as a PNG file, in order, with the given piece set. */
-export async function renderMoveImages(
-  frames: readonly MoveFrame[],
-  orientation: Color,
-  set: string,
-): Promise<File[]> {
+/** Draws each frame as a PNG file, in order. */
+export async function renderMoveImages(frames: readonly MoveFrame[], orientation: Color): Promise<File[]> {
   await Promise.all(
     ["600 64px Barlow", "500 30px Barlow", "400 34px Barlow"].map((font) =>
       document.fonts.load(font).catch(() => []),
@@ -317,7 +300,7 @@ export async function renderMoveImages(
 
   const files: File[] = [];
   for (const [index, frame] of frames.entries()) {
-    await drawFrame(context, frame, index, frames.length, orientation, set);
+    await drawFrame(context, frame, index, frames.length, orientation);
     const blob = await toPng(canvas);
     files.push(new File([blob], fileName(frame, index), { type: "image/png" }));
   }

@@ -178,36 +178,6 @@ test.describe("editing a position", () => {
   });
 });
 
-test.describe("choosing pieces", () => {
-  const knightImage = (page: Page) =>
-    page.locator("cg-board piece.knight.white").first().evaluate((piece) => getComputedStyle(piece).backgroundImage);
-
-  test("starts with Cburnett, switches at once, and remembers the choice", async ({ page }) => {
-    const picker = page.getByLabel("Pieces", { exact: true });
-    await expect(picker).toHaveValue("cburnett");
-    const before = await knightImage(page);
-    expect(before).toContain("url(");
-
-    await picker.selectOption("merida");
-    await expect.poll(() => knightImage(page)).not.toBe(before);
-    const merida = await knightImage(page);
-
-    await page.reload();
-    await page.getByRole("button", { name: "Arrange a position by hand" }).click();
-    await expect(page.getByLabel("Pieces", { exact: true })).toHaveValue("merida");
-    expect(await knightImage(page)).toBe(merida);
-  });
-
-  test("the palette shows the chosen set too", async ({ page }) => {
-    const paletteKnight = page.getByRole("button", { name: "Place white knight" }).locator("piece");
-    const image = () => paletteKnight.evaluate((piece) => getComputedStyle(piece).backgroundImage);
-    const before = await image();
-    await page.getByLabel("Pieces", { exact: true }).selectOption("pixel");
-    await expect.poll(image).not.toBe(before);
-    expect(await image()).toBe(await knightImage(page));
-  });
-});
-
 test.describe("pasting moves", () => {
   test("the moves open a real game, where a pawn can't capture sideways", async ({ page }) => {
     await page.getByText("Paste moves").click();

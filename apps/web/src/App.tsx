@@ -2,7 +2,6 @@ import { useEffect, useReducer, useState } from "react";
 import { initialSession, sessionReducer } from "./setup/sessionState";
 import { GameScreen } from "./ui/GameScreen";
 import { InputScreen } from "./ui/InputScreen";
-import { PieceSetPicker } from "./ui/PieceSetPicker";
 import { SetupScreen, type PastedMoves } from "./ui/SetupScreen";
 
 type Screen = "input" | "setup" | "game";
@@ -20,12 +19,7 @@ export function App() {
 
   return (
     <>
-      {screen !== "input" && (
-        <header className="masthead">
-          <span>Photo to Chess</span>
-          <PieceSetPicker />
-        </header>
-      )}
+      {screen !== "input" && <header className="masthead">Photo to Chess</header>}
       {screen === "input" && (
         <InputScreen
           onRecognized={(result) => {

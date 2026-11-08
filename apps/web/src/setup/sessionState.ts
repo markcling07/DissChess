@@ -1,6 +1,6 @@
 /** The position being set up, together with what's still to be checked from a recognised image. */
 import type { RecognitionSuccess } from "@photo-to-chess/contract";
-import { standardSetup, type PositionSetup } from "../chess/position";
+import { emptySetup, standardSetup, type PositionSetup } from "../chess/position";
 import {
   reviewFromRecognition,
   reviewReducer,
@@ -37,7 +37,8 @@ export function sessionReducer(session: SetupSession, action: SessionAction): Se
         review: reviewFromRecognition(action.result),
       };
     case "startByHand":
-      return initialSession();
+      // Arranging starts from nothing: the pieces are dragged on one by one.
+      return { setup: emptySetup(), review: null };
     case "clear":
     case "standard":
     case "load":

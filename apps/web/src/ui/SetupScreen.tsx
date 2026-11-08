@@ -1,5 +1,5 @@
 import type { Color, Square } from "chess.js";
-import { useMemo, useState, type Dispatch } from "react";
+import { useMemo, useRef, useState, type Dispatch, type PointerEvent as ReactPointerEvent } from "react";
 import {
   CASTLING_RIGHTS,
   canHoldCastlingRight,
@@ -69,6 +69,7 @@ export function SetupScreen({
   lastStart?: { fen: string; moves?: PastedMoves };
 }) {
   const [tool, setTool] = useState<Tool>(null);
+  const dragNewPiece = useRef<((piece: PieceCode, event: PointerEvent) => void) | null>(null);
   // After reading an image the board is shown, not arranged, or dragging a piece looks like playing.
   // Coming back from a game through Edit position, arranging is what was asked for.
   const [fixing, setFixing] = useState(Boolean(lastStart?.fen));
@@ -159,6 +160,7 @@ export function SetupScreen({
           placement={toPlacementString(setup.placement)}
           orientation="w"
           highlights={highlights}
+          dragNewPiece={dragNewPiece}
           interaction={
             locked
               ? { kind: "view" }
@@ -206,7 +208,7 @@ export function SetupScreen({
           </>
         ) : (
           <>
-          <div className="palette" role="group" aria-label="Choose what tapping a square does">
+          <div className="palette" role="group" aria-label="Pieces to add to the board">
             <ToolButton active={tool === null} label="Move pieces" onClick={() => setTool(null)}>
               <span className="tool-text">Move</span>
             </ToolButton>
@@ -216,6 +218,9 @@ export function SetupScreen({
                 active={tool === piece}
                 label={`Place ${PIECE_INFO[piece].name.toLowerCase()}`}
                 onClick={() => setTool(piece)}
+                onPointerDown={(event) => {
+                  if (event.button === 0) dragNewPiece.current?.(piece, event.nativeEvent);
+                }}
               >
                 <PieceImage piece={piece} />
               </ToolButton>
@@ -229,6 +234,9 @@ export function SetupScreen({
                 active={tool === piece}
                 label={`Place ${PIECE_INFO[piece].name.toLowerCase()}`}
                 onClick={() => setTool(piece)}
+                onPointerDown={(event) => {
+                  if (event.button === 0) dragNewPiece.current?.(piece, event.nativeEvent);
+                }}
               >
                 <PieceImage piece={piece} />
               </ToolButton>
@@ -278,6 +286,7 @@ export function SetupScreen({
       <section className="layout__side panel">
         <h1>{review ? "Check the position" : "Set up the position"}</h1>
         {review && <ReviewPanel review={review} dispatch={dispatch} />}
+        {!review && <p className="hint">Drag pieces from the tray onto the board. Drag one off to remove it.</p>}
 
         <fieldset>
           <legend>Whose turn is it?</legend>
@@ -456,11 +465,13 @@ function ToolButton({
   active,
   label,
   onClick,
+  onPointerDown,
   children,
 }: {
   active: boolean;
   label: string;
   onClick: () => void;
+  onPointerDown?: (event: ReactPointerEvent<HTMLButtonElement>) => void;
   children: React.ReactNode;
 }) {
   return (
@@ -470,6 +481,7 @@ function ToolButton({
       aria-pressed={active}
       aria-label={label}
       onClick={onClick}
+      onPointerDown={onPointerDown}
     >
       {children}
     </button>

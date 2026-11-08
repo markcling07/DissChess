@@ -2,11 +2,11 @@
 import { Chessground } from "@lichess-org/chessground";
 import type { Api } from "@lichess-org/chessground/api";
 import type { Config } from "@lichess-org/chessground/config";
-import type { Key } from "@lichess-org/chessground/types";
+import type { Key, Role } from "@lichess-org/chessground/types";
 import type { Color, Square } from "chess.js";
 import { useEffect, useRef } from "react";
 import { type PieceCode, type Placement } from "../chess/position";
-import { pieceCodeOf } from "./pieces";
+import { PIECE_INFO, pieceCodeOf } from "./pieces";
 
 export type BoardInteraction =
   | {
@@ -38,6 +38,8 @@ export interface BoardProps {
   highlights?: ReadonlyMap<Square, string>;
   /** Arrows drawn over the board, such as the engine's best move. */
   arrows?: readonly { from: Square; to: Square }[];
+  /** Filled in with a function that starts dragging a new piece from outside the board. */
+  dragNewPiece?: { current: ((piece: PieceCode, event: PointerEvent) => void) | null };
 }
 
 const COLOR_NAME = { w: "white", b: "black" } as const;
@@ -145,7 +147,16 @@ export function Board(props: BoardProps) {
       },
     });
     api.current = board;
+    const dragNewPiece = getProps().dragNewPiece;
+    if (dragNewPiece) {
+      dragNewPiece.current = (piece, event) => {
+        const { role, color } = PIECE_INFO[piece];
+        // Forced, so a piece dropped on an occupied square replaces what's there.
+        board.dragNewPiece({ role: role as Role, color }, event, true);
+      };
+    }
     return () => {
+      if (dragNewPiece) dragNewPiece.current = null;
       board.destroy();
       api.current = null;
     };

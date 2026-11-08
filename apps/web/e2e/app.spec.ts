@@ -66,10 +66,54 @@ test.beforeEach(async ({ page }) => {
   await page.goto("/");
   await page.getByRole("button", { name: "Arrange a position by hand" }).click();
   await expect(page.locator("cg-board")).toBeVisible();
+  await page.getByRole("button", { name: "Standard position" }).click();
+  await expect.poll(async () => (await pieces(page)).size).toBe(32);
 });
 
 test.afterEach(() => {
   expect(consoleErrors).toEqual([]);
+});
+
+test.describe("arranging by hand", () => {
+  test("starts empty, and pieces can be dragged on from the tray", async ({ page }) => {
+    await page.goto("/");
+    await page.getByRole("button", { name: "Arrange a position by hand" }).click();
+    await expect(page.locator("cg-board")).toBeVisible();
+    expect((await pieces(page)).size).toBe(0);
+    await expect(page.getByRole("button", { name: "Start game" })).toBeDisabled();
+
+    async function dragFromTray(name: string, square: string) {
+      await page.locator(".board").scrollIntoViewIfNeeded();
+      await page.evaluate(() => new Promise((done) => requestAnimationFrame(() => requestAnimationFrame(done))));
+      const from = (await page.getByRole("button", { name }).boundingBox())!;
+      const to = await squareCentre(page, square);
+      await page.mouse.move(from.x + from.width / 2, from.y + from.height / 2);
+      await page.mouse.down();
+      await page.mouse.move((from.x + to.x) / 2, (from.y + to.y) / 2, { steps: 5 });
+      await page.waitForTimeout(40);
+      await page.mouse.move(to.x, to.y, { steps: 5 });
+      await page.waitForTimeout(40);
+      await page.mouse.up();
+    }
+
+    await dragFromTray("Place white king", "e1");
+    await dragFromTray("Place black king", "e8");
+    await dragFromTray("Place white queen", "d4");
+    await expect.poll(async () => (await pieces(page)).get("d4")).toBe("white queen");
+    const board = await pieces(page);
+    expect(board.size).toBe(3);
+    expect(board.get("e1")).toBe("white king");
+    expect(board.get("e8")).toBe("black king");
+    expect(board.get("d4")).toBe("white queen");
+
+    // A piece dropped on an occupied square replaces it.
+    await dragFromTray("Place black rook", "d4");
+    await expect.poll(async () => (await pieces(page)).get("d4")).toBe("black rook");
+    expect((await pieces(page)).size).toBe(3);
+
+    await page.getByRole("radio", { name: "White" }).check();
+    await expect(page.getByRole("button", { name: "Start game" })).toBeEnabled();
+  });
 });
 
 test.describe("editing a position", () => {

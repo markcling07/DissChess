@@ -223,6 +223,8 @@ cg-board square.needs-fixing {
 }
 
 .tool {
+  /* So a finger dragging a piece off the tray doesn't scroll the page instead. */
+  touch-action: none;
   display: grid;
   place-items: center;
   min-height: 44px;

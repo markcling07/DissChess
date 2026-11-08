@@ -278,10 +278,6 @@ export function SetupScreen({
       <section className="layout__side panel">
         <h1>{review ? "Check the position" : "Set up the position"}</h1>
         {review && <ReviewPanel review={review} dispatch={dispatch} />}
-        <p className="lede">
-          A board can't show whose turn it is or what happened earlier in the game, so check these before
-          you play.
-        </p>
 
         <fieldset>
           <legend>Whose turn is it?</legend>

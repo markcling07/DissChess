@@ -30,6 +30,8 @@ export function App() {
         <InputScreen
           onRecognized={(result) => {
             dispatch({ type: "useRecognition", result });
+            // A new image starts afresh, so moves from any earlier game no longer apply.
+            setStart({ fen: "" });
             setScreen("setup");
           }}
           onArrangeByHand={() => {

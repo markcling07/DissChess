@@ -69,6 +69,10 @@ export function SetupScreen({
   lastStart?: { fen: string; moves?: PastedMoves };
 }) {
   const [tool, setTool] = useState<Tool>(null);
+  // After reading an image the board is shown, not arranged, or dragging a piece looks like playing.
+  // Coming back from a game through Edit position, arranging is what was asked for.
+  const [fixing, setFixing] = useState(Boolean(lastStart?.fen));
+  const locked = review !== null && !fixing;
   const [fenDraft, setFenDraft] = useState("");
   const [fenMessage, setFenMessage] = useState<{ text: string; isError: boolean } | null>(null);
   const [movesDraft, setMovesDraft] = useState("");
@@ -138,68 +142,104 @@ export function SetupScreen({
           placement={toPlacementString(setup.placement)}
           orientation="w"
           highlights={highlights}
-          interaction={{
-            kind: "edit",
-            tapMode: tool !== null,
-            onPlacementChange: (placement) => dispatch({ type: "setPlacement", placement }),
-            onSquareTap: handleTap,
-          }}
+          interaction={
+            locked
+              ? { kind: "view" }
+              : {
+                  kind: "edit",
+                  tapMode: tool !== null,
+                  onPlacementChange: (placement) => dispatch({ type: "setPlacement", placement }),
+                  onSquareTap: handleTap,
+                }
+          }
         />
 
-        <div className="palette" role="group" aria-label="Choose what tapping a square does">
-          <ToolButton active={tool === null} label="Move pieces" onClick={() => setTool(null)}>
-            <span className="tool-text">Move</span>
-          </ToolButton>
-          {WHITE_PIECES.map((piece) => (
-            <ToolButton
-              key={piece}
-              active={tool === piece}
-              label={`Place ${PIECE_INFO[piece].name.toLowerCase()}`}
-              onClick={() => setTool(piece)}
-            >
-              <PieceImage piece={piece} />
+        {locked ? (
+          <>
+            <p className="hint">
+              This is what was read from your image. Check it, then tap Start game to play. Pieces only move once the
+              game has started.
+            </p>
+            <div className="actions">
+              <button type="button" onClick={() => setFixing(true)}>
+                Fix a piece
+              </button>
+              {onUseImage && (
+                <button type="button" onClick={onUseImage}>
+                  Use an image instead
+                </button>
+              )}
+            </div>
+          </>
+        ) : (
+          <>
+          <div className="palette" role="group" aria-label="Choose what tapping a square does">
+            <ToolButton active={tool === null} label="Move pieces" onClick={() => setTool(null)}>
+              <span className="tool-text">Move</span>
             </ToolButton>
-          ))}
-          <ToolButton active={tool === "erase"} label="Remove pieces" onClick={() => setTool("erase")}>
-            <span className="tool-text">Erase</span>
-          </ToolButton>
-          {BLACK_PIECES.map((piece) => (
-            <ToolButton
-              key={piece}
-              active={tool === piece}
-              label={`Place ${PIECE_INFO[piece].name.toLowerCase()}`}
-              onClick={() => setTool(piece)}
-            >
-              <PieceImage piece={piece} />
+            {WHITE_PIECES.map((piece) => (
+              <ToolButton
+                key={piece}
+                active={tool === piece}
+                label={`Place ${PIECE_INFO[piece].name.toLowerCase()}`}
+                onClick={() => setTool(piece)}
+              >
+                <PieceImage piece={piece} />
+              </ToolButton>
+            ))}
+            <ToolButton active={tool === "erase"} label="Remove pieces" onClick={() => setTool("erase")}>
+              <span className="tool-text">Erase</span>
             </ToolButton>
-          ))}
-        </div>
+            {BLACK_PIECES.map((piece) => (
+              <ToolButton
+                key={piece}
+                active={tool === piece}
+                label={`Place ${PIECE_INFO[piece].name.toLowerCase()}`}
+                onClick={() => setTool(piece)}
+              >
+                <PieceImage piece={piece} />
+              </ToolButton>
+            ))}
+          </div>
 
-        <div className="actions">
-          <button type="button" onClick={() => dispatch({ type: "standard" })}>
-            Standard position
-          </button>
-          <button type="button" onClick={() => dispatch({ type: "clear" })}>
-            Clear board
-          </button>
-          <button type="button" onClick={() => dispatch({ type: "rotate" })}>
-            Rotate pieces 90°
-          </button>
-          <button
-            type="button"
-            onClick={() => {
-              dispatch({ type: "rotate" });
-              dispatch({ type: "rotate" });
-            }}
-          >
-            Turn board around
-          </button>
-          {onUseImage && (
-            <button type="button" onClick={onUseImage}>
-              Use an image instead
+          <div className="actions">
+            <button type="button" onClick={() => dispatch({ type: "standard" })}>
+              Standard position
             </button>
-          )}
-        </div>
+            <button type="button" onClick={() => dispatch({ type: "clear" })}>
+              Clear board
+            </button>
+            <button type="button" onClick={() => dispatch({ type: "rotate" })}>
+              Rotate pieces 90°
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                dispatch({ type: "rotate" });
+                dispatch({ type: "rotate" });
+              }}
+            >
+              Turn board around
+            </button>
+            {onUseImage && (
+              <button type="button" onClick={onUseImage}>
+                Use an image instead
+              </button>
+            )}
+            {review && (
+              <button
+                type="button"
+                onClick={() => {
+                  setFixing(false);
+                  setTool(null);
+                }}
+              >
+                Done fixing
+              </button>
+            )}
+          </div>
+          </>
+        )}
       </section>
 
       <section className="layout__side panel">

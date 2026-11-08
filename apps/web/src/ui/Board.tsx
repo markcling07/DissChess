@@ -17,6 +17,10 @@ export type BoardInteraction =
       onSquareTap: (square: Square) => void;
     }
   | {
+      /** Shown only: nothing on the board can be moved. */
+      kind: "view";
+    }
+  | {
       kind: "play";
       turn: Color;
       destinations: Map<Square, Square[]>;
@@ -55,6 +59,16 @@ function buildConfig(props: BoardProps, onEvent: () => BoardProps): Config {
     },
     highlight: { custom: new Map(highlights) as Map<Key, string> },
   };
+
+  // Chessground's viewOnly can't be turned off later, so the locked board just refuses every move.
+  if (interaction.kind === "view") {
+    return {
+      ...shared,
+      draggable: { enabled: false },
+      selectable: { enabled: false },
+      movable: { free: false, color: undefined },
+    };
+  }
 
   if (interaction.kind === "edit") {
     return {

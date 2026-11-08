@@ -294,8 +294,42 @@ test.describe("checking an uncertain reading", () => {
     await expect.poll(async () => (await pieces(page)).has("c6")).toBe(false);
   });
 
+  test("the board can't be dragged after reading an image, until asked to fix a piece", async ({ page }) => {
+    await useScriptedReading(page, scriptedReading(MIDGAME));
+    const before = await piecesSorted(page);
+
+    async function dragKnight() {
+      await page.locator(".board").scrollIntoViewIfNeeded();
+      await page.evaluate(() => new Promise((done) => requestAnimationFrame(() => requestAnimationFrame(done))));
+      const box = (await page.locator(".board").boundingBox())!;
+      const at = (column: number, row: number) => [box.x + ((column + 0.5) * box.width) / 8, box.y + ((row + 0.5) * box.height) / 8] as const;
+      // The white knight on f3, to the empty square a6.
+      await page.mouse.move(...at(5, 5));
+      await page.mouse.down();
+      await page.mouse.move(...at(2, 3), { steps: 5 });
+      await page.waitForTimeout(40);
+      await page.mouse.move(...at(0, 2), { steps: 5 });
+      await page.waitForTimeout(40);
+      await page.mouse.up();
+    }
+
+    const moveTool = page.getByRole("button", { name: "Move pieces", exact: true });
+    await expect(moveTool).toHaveCount(0);
+    await dragKnight();
+    expect(await piecesSorted(page)).toEqual(before);
+
+    await page.getByRole("button", { name: "Fix a piece" }).click();
+    await expect(moveTool).toBeVisible();
+    await dragKnight();
+    await expect.poll(async () => (await pieces(page)).get("a6")).toBe("white knight");
+
+    await page.getByRole("button", { name: "Done fixing" }).click();
+    await expect(page.getByRole("button", { name: "Fix a piece" })).toBeVisible();
+  });
+
   test("editing a flagged square on the board also resolves it", async ({ page }) => {
     await useScriptedReading(page, scriptedReading(MIDGAME, UNSURE));
+    await page.getByRole("button", { name: "Fix a piece" }).click();
     await page.getByRole("button", { name: "Remove pieces" }).click();
     const box = (await page.locator(".board").boundingBox())!;
     await page.locator(".board").scrollIntoViewIfNeeded();

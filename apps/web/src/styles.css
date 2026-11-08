@@ -99,11 +99,6 @@ p {
   gap: 20px;
 }
 
-.lede {
-  color: var(--buff-soft);
-  max-width: 44ch;
-}
-
 /* Board */
 .board-stack {
   position: relative;
@@ -691,12 +686,6 @@ legend {
 .input__title {
   font-size: clamp(2.5rem, 9vw, 4rem);
   line-height: 1;
-}
-
-.input__note {
-  font-size: 0.875rem;
-  color: var(--buff-soft);
-  max-width: 56ch;
 }
 
 .input__problem {

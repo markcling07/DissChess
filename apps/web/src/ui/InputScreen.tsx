@@ -6,12 +6,6 @@ import { ACCEPT_ATTRIBUTE, ImageProblem, prepareImage } from "../recognition/pre
 import { CameraCapture } from "./CameraCapture";
 import { CornerPicker } from "./CornerPicker";
 
-/**
- * Where the source code is published. The AGPL asks that people using the app over a network can
- * get it, so a public build sets VITE_SOURCE_URL to the repository's address.
- */
-const SOURCE_URL: string | undefined = import.meta.env.VITE_SOURCE_URL || undefined;
-
 /** An image ready to send, and a link to show it. */
 type Prepared = { image: Blob; previewUrl: string };
 
@@ -186,7 +180,6 @@ export function InputScreen({
   return (
     <main className="input">
       <h1 className="input__title">Diss Chess</h1>
-      <p className="lede">Turn a screenshot of a chessboard into a game you can play.</p>
 
       <input
         ref={fileInput}
@@ -261,20 +254,9 @@ export function InputScreen({
         </div>
       )}
 
-      <p className="input__note">
-        {photos
-          ? "Works best with screenshots of digital boards. Photos of real boards are being tested: you mark the board's corners, and should expect to correct some pieces."
-          : "Works with screenshots of digital boards. Photos of real boards aren't supported yet."}{" "}
-        Images are read once and not stored.
-      </p>
       <button type="button" className="text-button" onClick={onArrangeByHand}>
         Arrange a position by hand
       </button>
-      {SOURCE_URL && (
-        <p className="input__note">
-          Free software under the AGPL. <a href={SOURCE_URL}>Get the source code</a>.
-        </p>
-      )}
     </main>
   );
 }

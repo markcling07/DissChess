@@ -67,7 +67,6 @@ async function openCornerStep(page: Page) {
 test("without photos switched on, no corner marking is offered", async ({ page }) => {
   await scriptService(page);
   await page.goto("/");
-  await expect(page.getByText("Photos of real boards aren't supported yet.")).toBeVisible();
   await page.getByLabel("Image file").setInputFiles(IMAGE);
   await expect(page.getByRole("alert")).toHaveText("No flat chessboard was found.");
   await expect(page.getByRole("button", { name: "Mark the corners of a real board" })).toHaveCount(0);

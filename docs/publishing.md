@@ -105,8 +105,6 @@ Docker Spaces need a paid plan (PRO). As of November 2026 only Static Spaces are
 3. Environment variables:
    - `NODE_VERSION` = `24`
    - `VITE_RECOGNITION_URL` = the image reader's address from step 2, with no slash at the end
-   - `VITE_SOURCE_URL` = the GitHub repository's address. It's shown as a source code link on the
-     start screen.
    - `SKIP_DEPENDENCY_INSTALL` = `1`. Required: without it, Cloudflare finds the top-level
      `pyproject.toml`, which only holds tool settings, tries `pip install .`, and the build fails.
      The build command installs the web app's dependencies itself.
@@ -122,7 +120,7 @@ on `/sw.js`, or updates may not reach installed copies.
 
 On a computer and on a phone:
 
-- [ ] The start screen loads and shows the source code link.
+- [ ] The start screen loads.
 - [ ] **Arrange a position by hand**, then start and play a few moves.
 - [ ] Upload a screenshot of a digital board. It's read and the position check opens. If it says
       the reader isn't reachable, check `VITE_RECOGNITION_URL` and `PTC_ALLOWED_ORIGINS`.

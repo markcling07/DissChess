@@ -6,8 +6,11 @@ import "@lichess-org/chessground/assets/chessground.base.css";
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { App } from "./App";
-import "./pieces/pieces.css";
+import { applyPieceSet, savedPieceSet } from "./pieces/sets";
 import "./styles.css";
+
+// Before the first render, so pieces never flash in another set.
+applyPieceSet(savedPieceSet());
 
 // Lets the app work offline once installed. Only in built versions, as it would interfere with
 // development by serving stale files.

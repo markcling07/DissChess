@@ -1,6 +1,7 @@
 import type { Color } from "chess.js";
 import { useEffect, useMemo, useState } from "react";
 import type { GameReview } from "../engine/review";
+import { savedPieceSet } from "../pieces/sets";
 import {
   buildFrames,
   defaultClipStart,
@@ -60,7 +61,8 @@ export function MoveImages({
     setBusy(true);
     setMessage(null);
     try {
-      const files = await renderMoveImages(frames, orientation);
+      // The set shown on the board when the pictures are made.
+      const files = await renderMoveImages(frames, orientation, savedPieceSet());
       setMade({ files, urls: files.map((file) => URL.createObjectURL(file)) });
     } catch {
       setMessage({ text: "The pictures couldn't be made in this browser.", isError: true });

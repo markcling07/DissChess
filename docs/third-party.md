@@ -2,12 +2,37 @@
 
 | Material | Used for | Author | Licence |
 |---|---|---|---|
-| Celtic pieces (`apps/web/src/pieces/celtic`) | Pieces shown in the app, with colour reduced by CSS | Maurizio Monge | MIT, in that folder's `LICENSE` |
+| Piece sets (`apps/web/src/pieces`) | Pieces shown in the app and in saved move pictures, chosen with the Pieces menu. Cburnett is the default | See the table below | Each folder holds its licence |
 | Chessground | The interactive board | Lichess contributors | GPL-3.0-or-later |
 | Stockfish 19 Lite, via [stockfish.js](https://github.com/nmrugg/stockfish.js) 19.0.1 | Computer opponent and analysis, copied unchanged from the `stockfish` npm package into the built app | The Stockfish developers; Nathan Rugg | GPL-3.0, with the licence shipped beside the engine as `engine/COPYING.txt`. Source is at the links in this row and on the [Stockfish site](https://github.com/official-stockfish/Stockfish) |
 | chess.js | Chess rules | Jeff Hlywa and contributors | BSD-2-Clause |
 | Barlow, Patrick Hand | Fonts | Jeremy Tribby; Patrick Wagesreiter | SIL Open Font License |
 | cburnett pieces (`apps/web/e2e/fixtures`) | Test images only | Colin M.L. Burnett | GPL-2.0-or-later |
+
+## Piece sets shown in the app
+
+Copied unchanged from the lichess-org/lila repository at the commit pinned in `ml/src/ptc_data/assets.py`,
+with licences as stated in its `COPYING.md`. Each set's folder has a `LICENSE` or `LICENSE.md` naming
+the author and licence. CC BY 4.0 sets need their authors credited wherever the app is distributed.
+Celtic is shown with its colour reduced.
+
+| Set | Author | Licence |
+|---|---|---|
+| Cburnett (default) | Colin M.L. Burnett | GPL-2.0-or-later |
+| Merida | Armando Hernandez Marroquin | GPL-2.0-or-later |
+| Chessnut | Alexis Luengas | Apache-2.0 |
+| Celtic | Maurizio Monge | MIT |
+| MPChess | Maxime Chupin | GPL-3.0-or-later |
+| Pirouetti | pirouetti | AGPL-3.0-or-later |
+| Fantasy | Maurizio Monge | MIT |
+| Spatial | Maurizio Monge | MIT |
+| RhosGFX | RhosGFX | CC0-1.0 |
+| Papercut | Nikolay Anzarov | CC-BY-4.0 |
+| Totoy | Kosal Sen | CC-BY-4.0 |
+| Firi | James Faure | CC-BY-4.0 |
+| Pixel | therealqtpi | AGPL-3.0-or-later |
+
+Sets under non-commercial or unclear terms, and Chess.com's artwork, are not shown in the app.
 
 ## Artwork the model was trained on
 

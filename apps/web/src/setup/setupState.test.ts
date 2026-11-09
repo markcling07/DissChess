@@ -23,16 +23,19 @@ describe("setupReducer", () => {
     expect(setup.castling).toEqual({ K: false, Q: true, k: true, q: true });
   });
 
-  it("turns off both rights when the king leaves, and doesn't restore them", () => {
+  it("turns off both rights when the king leaves, and restores them when it's back", () => {
     let setup = setupReducer(standardSetup(), { type: "remove", square: "e8" });
     expect(setup.castling).toEqual({ K: true, Q: true, k: false, q: false });
     setup = setupReducer(setup, { type: "place", square: "e8", piece: "k" });
-    expect(setup.castling.k).toBe(false);
+    expect(setup.castling).toEqual({ K: true, Q: true, k: true, q: true });
   });
 
-  it("won't accept a castling right the board can't hold", () => {
-    const setup = setupReducer(emptySetup(), { type: "setCastling", right: "K", value: true });
-    expect(setup.castling.K).toBe(false);
+  it("gives a hand-arranged board castling wherever king and rook are at home", () => {
+    let setup = emptySetup();
+    for (const [square, piece] of [["e1", "K"], ["h1", "R"], ["a8", "r"], ["d8", "k"]] as const) {
+      setup = setupReducer(setup, { type: "place", square, piece });
+    }
+    expect(setup.castling).toEqual({ K: true, Q: false, k: false, q: false });
   });
 
   it("rotates clockwise and clears details that no longer fit", () => {

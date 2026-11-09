@@ -393,33 +393,6 @@ legend {
   opacity: 0.45;
 }
 
-.checks {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 4px 12px;
-}
-
-.check {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  min-height: 36px;
-  cursor: pointer;
-}
-
-.check input {
-  width: 20px;
-  height: 20px;
-  margin: 0;
-  accent-color: var(--canary);
-}
-
-.check--off {
-  color: var(--buff-soft);
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
 .more {
   display: block;
   padding-top: 12px;

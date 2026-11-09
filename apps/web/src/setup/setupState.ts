@@ -22,7 +22,6 @@ export type SetupAction =
   | { type: "clear" }
   | { type: "standard" }
   | { type: "setSide"; side: Color }
-  | { type: "setCastling"; right: CastlingRight; value: boolean }
   | { type: "setEnPassant"; square: Square | null }
   | { type: "setHalfmove"; value: number }
   | { type: "setFullmove"; value: number }
@@ -52,33 +51,38 @@ export function normaliseSetup(setup: PositionSetup): PositionSetup {
   return { ...setup, castling, enPassant };
 }
 
+/**
+ * Castling follows the board while a position is being arranged: a king and rook on their home
+ * squares are taken not to have moved, as nothing on the board can show otherwise.
+ */
+function withCastlingFromBoard(setup: PositionSetup): PositionSetup {
+  const castling = { ...setup.castling };
+  for (const right of CASTLING_RIGHTS) castling[right] = canHoldCastlingRight(setup.placement, right);
+  return normaliseSetup({ ...setup, castling });
+}
+
 export function setupReducer(setup: PositionSetup, action: SetupAction): PositionSetup {
   switch (action.type) {
     case "place": {
       const placement = new Map(setup.placement);
       placement.set(action.square, action.piece);
-      return normaliseSetup({ ...setup, placement });
+      return withCastlingFromBoard({ ...setup, placement });
     }
     case "remove": {
       const placement = new Map(setup.placement);
       placement.delete(action.square);
-      return normaliseSetup({ ...setup, placement });
+      return withCastlingFromBoard({ ...setup, placement });
     }
     case "setPlacement":
-      return normaliseSetup({ ...setup, placement: action.placement });
+      return withCastlingFromBoard({ ...setup, placement: action.placement });
     case "rotate":
-      return normaliseSetup({ ...setup, placement: rotatePlacement(setup.placement) });
+      return withCastlingFromBoard({ ...setup, placement: rotatePlacement(setup.placement) });
     case "clear":
       return emptySetup();
     case "standard":
       return standardSetup();
     case "setSide":
       return normaliseSetup({ ...setup, sideToMove: action.side });
-    case "setCastling":
-      return normaliseSetup({
-        ...setup,
-        castling: { ...setup.castling, [action.right]: action.value },
-      });
     case "setEnPassant":
       return normaliseSetup({ ...setup, enPassant: action.square });
     case "setHalfmove":

@@ -127,8 +127,6 @@ test.describe("reading real images with the real service", () => {
 
     await expect(page.getByRole("radio", { name: "White" })).not.toBeChecked();
     await expect(page.getByRole("radio", { name: "Black" })).not.toBeChecked();
-    await expect(page.getByLabel("White kingside")).not.toBeChecked();
-    await expect(page.getByText("Choose whose turn it is.")).toBeVisible();
     await expect(startButton(page)).toBeDisabled();
 
     await page.getByRole("radio", { name: "Black" }).check();
@@ -141,8 +139,8 @@ test.describe("reading real images with the real service", () => {
   test("the exact starting position gets its castling rights", async ({ page }) => {
     await upload(page, "start.png");
     await expectPosition(page, START);
-    await expect(page.getByLabel("White kingside")).toBeChecked();
-    await expect(page.getByLabel("Black queenside")).toBeChecked();
+    await page.getByRole("button", { name: "White to play" }).click();
+    await expect(page.getByText(`${START} w KQkq - 0 1`)).toBeVisible();
   });
 
   for (const [name, message] of [

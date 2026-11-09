@@ -39,7 +39,7 @@ describe("setup screen", () => {
   it("won't start until the side to move is chosen, and doesn't choose one itself", () => {
     const onStart = vi.fn();
     render(<Setup initial={{ ...standardSetup(), sideToMove: null }} onStart={onStart} />);
-    expect(screen.getByText("Choose whose turn it is.")).toBeTruthy();
+    expect(screen.queryByText("Choose whose turn it is.")).toBeNull();
     expect((button("Start game") as HTMLButtonElement).disabled).toBe(true);
     expect((screen.getByLabelText("White") as HTMLInputElement).checked).toBe(false);
     expect((screen.getByLabelText("Black") as HTMLInputElement).checked).toBe(false);
@@ -49,10 +49,10 @@ describe("setup screen", () => {
     expect(onStart).toHaveBeenCalledWith("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR b KQkq - 0 1");
   });
 
-  it("explains an empty board and blocks it", () => {
+  it("blocks an empty board without listing what's missing", () => {
     render(<Setup initial={emptySetup()} onStart={vi.fn()} />);
-    expect(screen.getByText("White has no king. Add one.")).toBeTruthy();
-    expect(screen.getByText("Black has no king. Add one.")).toBeTruthy();
+    expect(screen.queryByText("White has no king. Add one.")).toBeNull();
+    expect(screen.queryByText("Black has no king. Add one.")).toBeNull();
     expect((button("Start game") as HTMLButtonElement).disabled).toBe(true);
   });
 
@@ -82,13 +82,6 @@ describe("setup screen", () => {
     expect(screen.getByText("Black is in check, so it must be Black's turn.")).toBeTruthy();
     expect((screen.getByLabelText("Black") as HTMLInputElement).checked).toBe(true);
     expect((button("Start game") as HTMLButtonElement).disabled).toBe(false);
-  });
-
-  it("only offers castling when the king and rook are at home", () => {
-    render(<Setup initial={parseFen("4k3/8/8/8/8/8/8/4K2R w - - 0 1")} onStart={vi.fn()} />);
-    expect((screen.getByLabelText("White kingside") as HTMLInputElement).disabled).toBe(false);
-    expect((screen.getByLabelText("White queenside") as HTMLInputElement).disabled).toBe(true);
-    expect((screen.getByLabelText("Black kingside") as HTMLInputElement).disabled).toBe(true);
   });
 
   it("highlights the squares behind a blocking problem", () => {

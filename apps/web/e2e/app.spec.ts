@@ -137,9 +137,7 @@ test.describe("editing a position", () => {
     await tap(page, "h1");
     await expect.poll(async () => (await pieces(page)).size).toBe(31);
     expect((await pieces(page)).has("h1")).toBe(false);
-    await expect(page.getByLabel("White kingside")).toBeDisabled();
-    await expect(page.getByLabel("White kingside")).not.toBeChecked();
-    await expect(page.getByLabel("White queenside")).toBeChecked();
+    await expect(page.locator(".fen")).toContainText(" w Qkq - ");
   });
 
   test("selecting a piece and then switching tool doesn't affect that piece", async ({ page }) => {
@@ -188,17 +186,17 @@ test.describe("editing a position", () => {
     expect((await pieces(page)).get("c3")).toBe("white knight");
   });
 
-  test("rotating turns the pieces clockwise and clears castling", async ({ page }) => {
+  test("rotating turns the pieces clockwise", async ({ page }) => {
     await page.getByRole("button", { name: "Rotate pieces" }).click();
     await expect.poll(async () => (await pieces(page)).get("a8")).toBe("white rook");
     expect((await pieces(page)).get("h1")).toBe("black rook");
-    await expect(page.getByLabel("White kingside")).not.toBeChecked();
   });
 
-  test("an empty board explains itself and can't start", async ({ page }) => {
+  test("an empty board can't start, and no list of problems appears", async ({ page }) => {
     await page.getByRole("button", { name: "Clear board" }).click();
-    await expect(page.getByText("White has no king. Add one.")).toBeVisible();
-    await expect(page.getByText("Choose whose turn it is.")).toBeVisible();
+    await expect.poll(async () => (await pieces(page)).size).toBe(0);
+    await expect(page.getByText("White has no king. Add one.")).toHaveCount(0);
+    await expect(page.getByText("Choose whose turn it is.")).toHaveCount(0);
     await expect(page.getByRole("button", { name: "Start game" })).toBeDisabled();
   });
 

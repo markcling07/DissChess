@@ -2,12 +2,10 @@ import type { Color, Square } from "chess.js";
 import { useMemo, useRef, useState, type Dispatch, type PointerEvent as ReactPointerEvent } from "react";
 import {
   CASTLING_RIGHTS,
-  canHoldCastlingRight,
   enPassantOptions,
   parseFen,
   toFen,
   toPlacementString,
-  type CastlingRight,
   type PieceCode,
   type PositionSetup,
 } from "../chess/position";
@@ -26,12 +24,9 @@ type Tool = PieceCode | "erase" | null;
 const WHITE_PIECES: readonly PieceCode[] = ["K", "Q", "R", "B", "N", "P"];
 const BLACK_PIECES: readonly PieceCode[] = ["k", "q", "r", "b", "n", "p"];
 const SIDE_NAME: Record<Color, string> = { w: "White", b: "Black" };
-const CASTLING_LABEL: Record<CastlingRight, string> = {
-  K: "White kingside",
-  Q: "White queenside",
-  k: "Black kingside",
-  q: "Black queenside",
-};
+
+/** Plain from the board and the turn buttons, so these still stop the game but aren't spelled out. */
+const UNSTATED_ISSUES: ReadonlySet<string> = new Set(["missing_king", "side_to_move_missing"]);
 
 function parseCounter(text: string): number {
   return text.trim() === "" ? Number.NaN : Number(text);
@@ -286,7 +281,6 @@ export function SetupScreen({
       <section className="layout__side panel">
         <h1>{review ? "Check the position" : "Set up the position"}</h1>
         {review && <ReviewPanel review={review} dispatch={dispatch} />}
-        {!review && <p className="hint">Drag pieces from the tray onto the board. Drag one off to remove it.</p>}
 
         <fieldset>
           <legend>Whose turn is it?</legend>
@@ -309,32 +303,6 @@ export function SetupScreen({
               {SIDE_NAME[forcedSide]} is in check, so it must be {SIDE_NAME[forcedSide]}'s turn.
             </p>
           )}
-        </fieldset>
-
-        <fieldset>
-          <legend>Who can still castle?</legend>
-          <div className="checks">
-            {CASTLING_RIGHTS.map((right) => {
-              const available = canHoldCastlingRight(setup.placement, right);
-              return (
-                <label key={right} className={available ? "check" : "check check--off"}>
-                  <input
-                    type="checkbox"
-                    checked={setup.castling[right]}
-                    disabled={!available}
-                    onChange={(event) =>
-                      dispatch({ type: "setCastling", right, value: event.target.checked })
-                    }
-                  />
-                  <span>{CASTLING_LABEL[right]}</span>
-                </label>
-              );
-            })}
-          </div>
-          <p className="hint">
-            Only available with the king and rook on their home squares. Leave unticked if they've moved
-            or you aren't sure.
-          </p>
         </fieldset>
 
         <details className="more">
@@ -434,7 +402,7 @@ export function SetupScreen({
           )}
         </details>
 
-        <IssueList issues={issues} />
+        <IssueList issues={issues.filter(({ code }) => !UNSTATED_ISSUES.has(code))} />
         {unresolved > 0 && (
           <p className="issue issue--blocking">
             {unresolved === 1 ? "1 thing still needs" : `${unresolved} things still need`} checking above. Fix or

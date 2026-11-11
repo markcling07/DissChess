@@ -26,7 +26,7 @@ from ptc_vision.grid import BoardRect, find_boards
 from ptc_vision.intake import IntakeError, decode_image
 from ptc_vision.orientation import decide_orientation
 from ptc_vision.position_checks import check_layout
-from ptc_vision.tiles import LABELS, extract_tiles
+from ptc_vision.tiles import LABELS, crop_padded, extract_tiles
 
 ALTERNATIVES = 3
 MIN_ALTERNATIVE = 0.005
@@ -139,9 +139,10 @@ def _square_name(row: int, column: int, white_at_bottom: bool) -> str:
 
 def _preview(rgb: np.ndarray, rect: BoardRect, white_at_bottom: bool) -> str:
     """The located board as a small JPEG, turned to match the position shown beside it."""
-    left, top = max(0, round(rect.x)), max(0, round(rect.y))
+    left, top = round(rect.x), round(rect.y)
     right, bottom = round(rect.x + rect.size_x), round(rect.y + rect.size_y)
-    board = cv2.resize(rgb[top:bottom, left:right], (PREVIEW_SIZE, PREVIEW_SIZE), cv2.INTER_AREA)
+    board = crop_padded(rgb, left, top, right, bottom)
+    board = cv2.resize(board, (PREVIEW_SIZE, PREVIEW_SIZE), cv2.INTER_AREA)
     if not white_at_bottom:
         board = cv2.rotate(board, cv2.ROTATE_180)
     encoded, jpeg = cv2.imencode(

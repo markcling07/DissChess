@@ -52,6 +52,11 @@ class GridResult:
     blurry: bool = False
 
 
+# How far a board may run past the image's edge, in squares, and still be read. Screenshots are
+# often cropped right on the board, shaving a little off the edge squares.
+EDGE_SLACK = 0.25
+
+
 def _peaks(profile: np.ndarray, min_height: float) -> list[int]:
     """Positions where the edge count rises sharply above its surroundings."""
     window = 17
@@ -198,8 +203,8 @@ def _full_candidates(
                     if key in seen:
                         continue
                     seen.add(key)
-                    slack_x = x_step * 0.08
-                    slack_y = y_step * 0.08
+                    slack_x = x_step * EDGE_SLACK
+                    slack_y = y_step * EDGE_SLACK
                     if (
                         x < -slack_x
                         or y < -slack_y

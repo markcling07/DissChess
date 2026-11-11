@@ -115,6 +115,19 @@ def test_a_thumbnail_beside_the_main_board_doesnt_count_as_a_second_board():
     assert_located(find_boards(page), 20, 20, 480)
 
 
+@pytest.mark.parametrize("shaved", [5, 7, 12])
+def test_a_board_cropped_slightly_into_its_edge_squares_is_still_found(shaved):
+    # Up to a fifth of a 60-pixel square cut off the left and top, as in tight screenshots.
+    result = find_boards(draw_board(480)[shaved:, shaved:])
+    assert_located(result, -shaved, -shaved, 480)
+
+
+def test_a_board_missing_half_a_square_is_still_called_cut_off():
+    result = find_boards(draw_board(480)[:, 30:])
+    assert result.incomplete
+    assert not result.boards
+
+
 @pytest.mark.parametrize("height", [180, 240, 330])
 def test_a_cut_off_board_is_reported_as_incomplete(height):
     result = find_boards(draw_board(480)[:height])

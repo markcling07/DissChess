@@ -1,6 +1,10 @@
 /** Checks an image in the browser and shrinks very large ones, to give quick feedback and save data. */
 export const MAX_UPLOAD_BYTES = 15 * 1024 * 1024;
-export const MAX_EDGE = 2048;
+/**
+ * Plenty for a board to be read: squares are read at 40 pixels, and photos at 640 across. Larger
+ * images only make the reader slower, which matters on a small server.
+ */
+export const MAX_EDGE = 1280;
 const ACCEPTED_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
 
 export const ACCEPT_ATTRIBUTE = "image/jpeg,image/png,image/webp";

@@ -248,7 +248,8 @@ def create_app(
             return _failure_response(
                 RecognitionFailure(
                     code="recognition_timeout",
-                    message="This image took too long to read. Try a smaller one.",
+                    message="This took too long to read. It may not be a screenshot of a digital "
+                    "board. Try a screenshot, or arrange the position by hand.",
                     retryable=True,
                 )
             )

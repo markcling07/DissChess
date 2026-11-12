@@ -70,9 +70,14 @@ def _hsv(h: float, s: float, v: float) -> tuple[float, float, float]:
     return (r**2.2, g**2.2, b**2.2)
 
 
-def piece_materials(rng: random.Random) -> tuple[bpy.types.Material, bpy.types.Material]:
+def piece_materials(
+    rng: random.Random, glossy: bool = False
+) -> tuple[bpy.types.Material, bpy.types.Material]:
     """A matching pair for the two sides, from families seen in real sets."""
-    family = rng.choices(["plastic", "wood", "metal", "colour"], weights=[50, 35, 7, 8])[0]
+    if glossy:
+        family = rng.choices(["wood", "plastic"], weights=[70, 30])[0]
+    else:
+        family = rng.choices(["plastic", "wood", "metal", "colour"], weights=[50, 35, 7, 8])[0]
     pair = []
     for white in (True, False):
         material, bsdf, tree = _material("white" if white else "black")
@@ -86,8 +91,12 @@ def piece_materials(rng: random.Random) -> tuple[bpy.types.Material, bpy.types.M
                     rng.uniform(0.0, 0.08), rng.uniform(0.4, 0.8), rng.uniform(0.06, 0.25)
                 )
             _set_input(bsdf, ["Base Color"], (*colour, 1))
-            _set_input(bsdf, ["Roughness"], rng.uniform(0.12, 0.6))
-            _set_input(bsdf, ["Coat Weight"], rng.uniform(0, 0.4))
+            if glossy:
+                _set_input(bsdf, ["Roughness"], rng.uniform(0.06, 0.2))
+                _set_input(bsdf, ["Coat Weight"], rng.uniform(0.4, 0.85))
+            else:
+                _set_input(bsdf, ["Roughness"], rng.uniform(0.12, 0.6))
+                _set_input(bsdf, ["Coat Weight"], rng.uniform(0, 0.4))
         elif family == "wood":
             if white:
                 base = (rng.uniform(0.07, 0.12), rng.uniform(0.25, 0.6), rng.uniform(0.6, 0.9))
@@ -96,8 +105,12 @@ def piece_materials(rng: random.Random) -> tuple[bpy.types.Material, bpy.types.M
             light = _hsv(*base)
             dark = _hsv(base[0], base[1] + 0.1, base[2] * rng.uniform(0.6, 0.85))
             _grain(tree, bsdf, light, dark, rng, 8)
-            _set_input(bsdf, ["Roughness"], rng.uniform(0.25, 0.7))
-            _set_input(bsdf, ["Coat Weight"], rng.uniform(0, 0.6))
+            if glossy:
+                _set_input(bsdf, ["Roughness"], rng.uniform(0.08, 0.22))
+                _set_input(bsdf, ["Coat Weight"], rng.uniform(0.5, 0.95))
+            else:
+                _set_input(bsdf, ["Roughness"], rng.uniform(0.25, 0.7))
+                _set_input(bsdf, ["Coat Weight"], rng.uniform(0, 0.6))
         elif family == "metal":
             hue = rng.uniform(0.1, 0.14) if white else rng.choice([rng.uniform(0.05, 0.1), 0.6])
             colour = _hsv(hue, rng.uniform(0.0, 0.6) if white else 0.3, 0.9 if white else 0.35)
@@ -128,9 +141,14 @@ BOARD_THEMES = [
 ]
 
 
-def board_materials(rng: random.Random) -> tuple:
-    light_hsv, dark_hsv = rng.choice(BOARD_THEMES)
-    wood = rng.random() < 0.45
+def board_materials(rng: random.Random, style: str = "") -> tuple:
+    if style == "wood3d":
+        light_hsv = (rng.uniform(0.08, 0.12), rng.uniform(0.2, 0.5), rng.uniform(0.7, 0.9))
+        dark_hsv = (rng.uniform(0.05, 0.1), rng.uniform(0.4, 0.7), rng.uniform(0.2, 0.45))
+        wood = True
+    else:
+        light_hsv, dark_hsv = rng.choice(BOARD_THEMES)
+        wood = rng.random() < 0.45
     out = []
     for h, s, v in (light_hsv, dark_hsv):
         material, bsdf, tree = _material("square")
@@ -145,7 +163,11 @@ def board_materials(rng: random.Random) -> tuple:
         _set_input(bsdf, ["Roughness"], rng.uniform(0.2, 0.75))
         out.append(material)
     frame, bsdf, tree = _material("frame")
-    if rng.random() < 0.5:
+    if style == "wood3d":
+        # Always a wood-grain frame for wooden 3D boards.
+        h = rng.uniform(0.04, 0.1)
+        _grain(tree, bsdf, _hsv(h, 0.6, rng.uniform(0.2, 0.6)), _hsv(h, 0.7, 0.15), rng, 3)
+    elif rng.random() < 0.5:
         _set_input(
             bsdf,
             ["Base Color"],
@@ -280,6 +302,9 @@ def clear_scene() -> None:
     for mesh in list(bpy.data.meshes):
         if mesh.users == 0:
             bpy.data.meshes.remove(mesh)
+    for curve in list(bpy.data.curves):
+        if curve.users == 0:
+            bpy.data.curves.remove(curve)
 
 
 def _box_object(
@@ -306,9 +331,9 @@ def _box_object(
     return obj
 
 
-def build_board(rng: random.Random) -> float:
-    """Squares, a frame around them and a table. Returns the height of the playing surface."""
-    light, dark, frame_material = board_materials(rng)
+def build_board(rng: random.Random, style: str = "") -> tuple[float, float]:
+    """Squares, a frame around them and a table. Returns (surface height, border width)."""
+    light, dark, frame_material = board_materials(rng, style=style)
     mesh = bpy.data.meshes.new("squares")
     verts, faces, materials = [], [], []
     for rank in range(8):
@@ -327,13 +352,147 @@ def build_board(rng: random.Random) -> float:
     squares = bpy.data.objects.new("squares", mesh)
     bpy.context.scene.collection.objects.link(squares)
 
-    border = rng.choice([0.0, rng.uniform(0.1, 0.5), rng.uniform(0.5, 1.4)])
+    if style == "wood3d":
+        border = rng.uniform(0.5, 1.2)
+    else:
+        border = rng.choice([0.0, rng.uniform(0.1, 0.5), rng.uniform(0.5, 1.4)])
     thickness = rng.uniform(0.05, 0.6)
     _box_object(
         "frame", 8 + 2 * border + 0.01, 8 + 2 * border + 0.01, -0.002, thickness, frame_material
     )
     _box_object("table", 400, 400, -thickness, 1, table_material(rng))
-    return -thickness
+    return -thickness, border
+
+
+# ---------------------------------------------------------------- overlays (wood3d style)
+
+
+HIGHLIGHT_COLOURS = {
+    "green": (0.08, 0.45, 0.12),
+    "red": (0.55, 0.08, 0.05),
+    "yellow": (0.65, 0.55, 0.08),
+    "blue": (0.1, 0.3, 0.65),
+}
+
+ARROW_COLOURS = {
+    "green": (0.05, 0.4, 0.1),
+    "red": (0.5, 0.08, 0.05),
+    "blue": (0.05, 0.2, 0.55),
+    "orange": (0.7, 0.35, 0.02),
+}
+
+
+def _overlay_material(name: str, colour: tuple, fac: float) -> bpy.types.Material:
+    """A transparent-plus-colour mix material for highlights and arrows."""
+    mat = bpy.data.materials.new(name)
+    mat.use_nodes = True
+    tree = mat.node_tree
+    bsdf = next(n for n in tree.nodes if n.type == "BSDF_PRINCIPLED")
+    tree.nodes.remove(bsdf)
+    output = next(n for n in tree.nodes if n.type == "OUTPUT_MATERIAL")
+    transparent = tree.nodes.new("ShaderNodeBsdfTransparent")
+    diffuse = tree.nodes.new("ShaderNodeBsdfDiffuse")
+    diffuse.inputs["Color"].default_value = (*colour, 1)
+    mix = tree.nodes.new("ShaderNodeMixShader")
+    mix.inputs["Fac"].default_value = fac
+    tree.links.new(transparent.outputs[0], mix.inputs[1])
+    tree.links.new(diffuse.outputs[0], mix.inputs[2])
+    tree.links.new(mix.outputs[0], output.inputs["Surface"])
+    return mat
+
+
+def build_highlights(highlights: list) -> None:
+    """Coloured translucent planes on specific squares, like last-move or selection highlights."""
+    for square, colour_name in highlights:
+        file_idx = FILES.index(square[0])
+        rank_idx = int(square[1]) - 1
+        x, y = -3.5 + file_idx, -3.5 + rank_idx
+        colour = HIGHLIGHT_COLOURS.get(colour_name, HIGHLIGHT_COLOURS["green"])
+        mat = _overlay_material(f"hl_{square}", colour, 0.45)
+        mesh = bpy.data.meshes.new(f"hl_{square}")
+        verts = [
+            (x - 0.5, y - 0.5, 0.003),
+            (x + 0.5, y - 0.5, 0.003),
+            (x + 0.5, y + 0.5, 0.003),
+            (x - 0.5, y + 0.5, 0.003),
+        ]
+        mesh.from_pydata(verts, [], [(0, 1, 2, 3)])
+        mesh.materials.append(mat)
+        obj = bpy.data.objects.new(f"hl_{square}", mesh)
+        bpy.context.scene.collection.objects.link(obj)
+
+
+def build_arrows(arrows: list) -> None:
+    """Semi-transparent arrows between square centres, like analysis arrows."""
+    for start_sq, end_sq, colour_name in arrows:
+        sf, sr = FILES.index(start_sq[0]), int(start_sq[1]) - 1
+        ef, er = FILES.index(end_sq[0]), int(end_sq[1]) - 1
+        sx, sy = -3.5 + sf, -3.5 + sr
+        ex, ey = -3.5 + ef, -3.5 + er
+        dx, dy = ex - sx, ey - sy
+        length = math.sqrt(dx * dx + dy * dy)
+        if length < 0.1:
+            continue
+        angle = math.atan2(dy, dx)
+        colour = ARROW_COLOURS.get(colour_name, ARROW_COLOURS["green"])
+        mat = _overlay_material(f"arr_{start_sq}{end_sq}", colour, 0.7)
+        w = 0.15
+        head_w = 0.3
+        head_len = min(0.4, length * 0.35)
+        shaft_len = max(0.1, length - head_len)
+        verts = [
+            (0, -w, 0.005),
+            (shaft_len, -w, 0.005),
+            (shaft_len, w, 0.005),
+            (0, w, 0.005),
+            (shaft_len, -head_w, 0.005),
+            (length, 0, 0.005),
+            (shaft_len, head_w, 0.005),
+        ]
+        mesh = bpy.data.meshes.new(f"arr_{start_sq}{end_sq}")
+        mesh.from_pydata(verts, [], [(0, 1, 2, 3), (4, 5, 6)])
+        mesh.materials.append(mat)
+        obj = bpy.data.objects.new(f"arr_{start_sq}{end_sq}", mesh)
+        obj.location = (sx, sy, 0)
+        obj.rotation_euler = (0, 0, angle)
+        bpy.context.scene.collection.objects.link(obj)
+
+
+def build_coordinates(border: float, rng: random.Random) -> None:
+    """Prints a-h and 1-8 on the frame border, as on wooden tournament boards."""
+    if border < 0.3:
+        return
+    # Contrast with the dark wood frame: cream or gold letters.
+    mat, bsdf, tree = _material("label")
+    label_colour = _hsv(rng.uniform(0.08, 0.14), rng.uniform(0.25, 0.55), rng.uniform(0.7, 0.95))
+    _set_input(bsdf, ["Base Color"], (*label_colour, 1))
+    _set_input(bsdf, ["Roughness"], 0.5)
+
+    font_size = min(border * 0.55, 0.45)
+    for i, letter in enumerate("abcdefgh"):
+        for y_pos in (-4 - border * 0.45, 4 + border * 0.2):
+            name = f"f{letter}_{y_pos:.0f}"
+            curve = bpy.data.curves.new(name, "FONT")
+            curve.body = letter
+            curve.size = font_size
+            curve.align_x = "CENTER"
+            curve.align_y = "CENTER"
+            curve.materials.append(mat)
+            obj = bpy.data.objects.new(name, curve)
+            obj.location = (-3.5 + i, y_pos, 0.001)
+            bpy.context.scene.collection.objects.link(obj)
+    for i, digit in enumerate("12345678"):
+        for x_pos in (-4 - border * 0.45, 4 + border * 0.2):
+            name = f"r{digit}_{x_pos:.0f}"
+            curve = bpy.data.curves.new(name, "FONT")
+            curve.body = digit
+            curve.size = font_size
+            curve.align_x = "CENTER"
+            curve.align_y = "CENTER"
+            curve.materials.append(mat)
+            obj = bpy.data.objects.new(name, curve)
+            obj.location = (x_pos, -3.5 + i, 0.001)
+            bpy.context.scene.collection.objects.link(obj)
 
 
 def light_scene(rng: random.Random) -> None:
@@ -428,7 +587,7 @@ def project(points: np.ndarray, camera: bpy.types.Object, width: int, height: in
     return pixels
 
 
-def place_camera(rng, width, height, tallest) -> bpy.types.Object:
+def place_camera(rng, width, height, tallest, top_down: bool = False) -> bpy.types.Object:
     data = bpy.data.cameras.new("camera")
     data.lens = rng.uniform(24, 60)
     data.sensor_width = 36
@@ -437,7 +596,10 @@ def place_camera(rng, width, height, tallest) -> bpy.types.Object:
     bpy.context.scene.camera = camera
 
     azimuth = rng.uniform(0, 2 * math.pi)
-    elevation = math.radians(rng.choice([rng.uniform(30, 60), rng.uniform(45, 88)]))
+    if top_down:
+        elevation = math.radians(rng.uniform(70, 88))
+    else:
+        elevation = math.radians(rng.choice([rng.uniform(30, 60), rng.uniform(45, 88)]))
     target = Vector((rng.uniform(-0.8, 0.8), rng.uniform(-0.8, 0.8), 0))
     roll = math.radians(rng.gauss(0, 4))
     fill = rng.uniform(0.75, 1.0)
@@ -532,6 +694,9 @@ def main() -> None:
         rng = random.Random(job["seed"])
         clear_scene()
         width, height = rng.choice([(960, 720), (720, 960), (960, 960), (1024, 576)])
+        style = jobs.get("style", "")
+        if style == "wood3d":
+            width, height = rng.choice([(960, 960), (960, 720), (720, 960), (800, 800)])
         configure_render(rng, width, height, jobs.get("samples", 24))
 
         # Kings stand about 1.5 to 2.1 squares tall, and no base may overflow its square.
@@ -545,12 +710,19 @@ def main() -> None:
             up = scale * (rng.uniform(0.9, 1.05) if kind == "P" else rng.uniform(0.9, 1.15))
             stretch[kind] = (across, up)
 
-        surface = build_board(rng)
+        surface, border = build_board(rng, style=style)
+        if style == "wood3d":
+            build_coordinates(border, rng)
+        if job.get("highlights"):
+            build_highlights(job["highlights"])
+        if job.get("arrows"):
+            build_arrows(job["arrows"])
         light_scene(rng)
-        white, black = piece_materials(rng)
+        white, black = piece_materials(rng, glossy=(style == "wood3d"))
         placed = place_pieces(rng, job["placement"], meshes, white, black, surface, stretch)
         camera = place_camera(
-            rng, width, height, king_height * max(up for _, up in stretch.values())
+            rng, width, height, king_height * max(up for _, up in stretch.values()),
+            top_down=(style == "wood3d"),
         )
 
         corners = project(

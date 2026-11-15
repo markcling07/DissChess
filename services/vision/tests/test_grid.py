@@ -204,6 +204,40 @@ def test_a_plain_table_grid_isnt_a_board():
     assert not result.incomplete
 
 
+def test_a_puzzle_screenshot_with_highlights_and_arrows_is_found():
+    """A board with semi-transparent highlighted squares, thick arrows, and a banner."""
+    board_size = 560
+    cell = board_size / 8
+    banner_h, controls_h = 60, 50
+    total_h = banner_h + board_size + controls_h
+    light = np.array(LIGHT, dtype=np.float32)
+    dark = np.array(DARK, dtype=np.float32)
+
+    image = np.full((total_h, board_size, 3), (48, 46, 43), dtype=np.uint8)
+    cv2.rectangle(image, (0, 0), (board_size, banner_h), (38, 36, 33), -1)
+    cv2.putText(image, "Brilliant Move!", (20, 38), cv2.FONT_HERSHEY_SIMPLEX, 1.1, (255, 200, 50), 2)
+
+    board = np.zeros((board_size, board_size, 3), dtype=np.float32)
+    for row in range(8):
+        for col in range(8):
+            x0, y0 = round(col * cell), round(row * cell)
+            x1, y1 = round((col + 1) * cell), round((row + 1) * cell)
+            board[y0:y1, x0:x1] = light if (row + col) % 2 == 0 else dark
+
+    for row, col in [(3, 4), (5, 5)]:
+        x0, y0 = round(col * cell), round(row * cell)
+        x1, y1 = round((col + 1) * cell), round((row + 1) * cell)
+        board[y0:y1, x0:x1] = board[y0:y1, x0:x1] * 0.5 + 127
+
+    board_u8 = np.clip(board, 0, 255).astype(np.uint8)
+    p1 = (round(5.5 * cell), round(5.5 * cell))
+    p2 = (round(3.5 * cell), round(3.5 * cell))
+    cv2.arrowedLine(board_u8, p1, p2, (100, 200, 80), 10, tipLength=0.15)
+
+    image[banner_h : banner_h + board_size, :] = board_u8
+    assert_located(find_boards(image), 0, banner_h, board_size)
+
+
 def test_grid_detection_finishes_in_time_on_noisy_images():
     """Even with heavy texture, detection stays well under the API timeout."""
     import time

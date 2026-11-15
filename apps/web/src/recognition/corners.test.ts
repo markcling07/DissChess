@@ -22,8 +22,8 @@ const square: Corners = [
 ];
 
 describe("tapped corners", () => {
-  it("are offered only when switched on", () => {
-    expect(photosEnabled("")).toBe(false);
+  it("are on by default, can be switched off", () => {
+    expect(photosEnabled("")).toBe(true);
     expect(photosEnabled("?photos=1")).toBe(true);
     expect(photosEnabled("?photos=0")).toBe(false);
   });

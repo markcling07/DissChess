@@ -2,12 +2,11 @@
 export type Corner = { readonly x: number; readonly y: number };
 export type Corners = readonly [Corner, Corner, Corner, Corner];
 
-/**
- * Photos of real boards are still being trained for and aren't accurate enough to offer. They can
- * be tried by building with VITE_PHOTO_CORNERS=1 or by opening the app with ?photos=1.
- */
+/** Photos of real boards are on by default. Disable with ?photos=0 or VITE_PHOTO_CORNERS=0. */
 export function photosEnabled(search: string = globalThis.location?.search ?? ""): boolean {
-  return import.meta.env.VITE_PHOTO_CORNERS === "1" || new URLSearchParams(search).get("photos") === "1";
+  if (new URLSearchParams(search).get("photos") === "0") return false;
+  if (import.meta.env.VITE_PHOTO_CORNERS === "0") return false;
+  return true;
 }
 
 /** Why the screenshot reader can give up on a photo of a real board, where marked corners can help. */

@@ -6,9 +6,7 @@ angle, but their bases don't.
 
 The detector was trained on rendered images of many chess sets, and its piece types are used as
 they come. An earlier rule that called short pieces pawns was removed once the detector learned
-types well, since it turned short rooks into pawns. Results are not yet accurate enough for photos
-to be offered in the app without a switch, and confidences are not calibrated. See
-docs/photo-comparison.md.
+types well, since it turned short rooks into pawns. Confidences are not calibrated. See docs/photo-comparison.md.
 """
 
 import base64

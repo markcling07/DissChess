@@ -19,6 +19,8 @@ MIN_CONTRAST = 14.0
 MIN_LINE_SUPPORT = 0.5
 SIMILAR_BOARD_AREA = 0.5
 MAX_PEAKS = 160
+MAX_RUNS_PER_AXIS = 40
+MAX_ALTERNATION_CHECKS = 2000
 BLUR_VARIANCE = 30.0
 BLUR_MIN_SPREAD = 15.0
 
@@ -110,15 +112,28 @@ def _runs(peaks: list[int], min_lines: int, max_cell: float) -> list[tuple[float
 
 
 def _line_runs(
-    gray: np.ndarray, axis: int, min_lines: int, max_cell: float | None = None
+    gray: np.ndarray,
+    axis: int,
+    min_lines: int,
+    max_cell: float | None = None,
+    thresholds: tuple[int, ...] = EDGE_THRESHOLDS,
 ) -> list[tuple[float, float, int]]:
     """Runs of evenly spaced lines. Axis 1 finds vertical lines and axis 0 horizontal ones."""
     max_cell = max_cell or gray.shape[axis] / 6
-    runs: list[tuple[float, float, int]] = []
-    for threshold in EDGE_THRESHOLDS:
+    best: dict[tuple[int, int], tuple[float, float, int]] = {}
+    for threshold in thresholds:
         edges = np.abs(np.diff(gray.astype(np.int16), axis=axis)) > threshold
         profile = edges.sum(axis=1 - axis).astype(np.float32)
-        runs += _runs(_peaks(profile, max(24.0, MIN_CELL * 2.0)), min_lines, max_cell)
+        for first, step, count in _runs(
+            _peaks(profile, max(24.0, MIN_CELL * 2.0)), min_lines, max_cell
+        ):
+            key = (round(first / max(3, step * 0.05)), round(step))
+            if key not in best or best[key][2] < count:
+                best[key] = (first, step, count)
+    runs = list(best.values())
+    if len(runs) > MAX_RUNS_PER_AXIS:
+        runs.sort(key=lambda r: -r[2])
+        runs = runs[:MAX_RUNS_PER_AXIS]
     return runs
 
 
@@ -189,10 +204,11 @@ def _full_candidates(
     height, width = rgb.shape[:2]
     candidates: list[BoardRect] = []
     seen: set[tuple[int, int, int]] = set()
-    for x_first, x_step, x_count in x_runs:
+    checks = 0
+    for x_first, x_step, x_count in sorted(x_runs, key=lambda r: -r[2]):
         if x_count < 7:
             continue
-        for y_first, y_step, y_count in y_runs:
+        for y_first, y_step, y_count in sorted(y_runs, key=lambda r: -r[2]):
             if y_count < 7 or abs(x_step - y_step) > 0.04 * max(x_step, y_step):
                 continue
             # A run of 8 or 9 lines includes the board's outer edges, so every window is tried.
@@ -213,6 +229,9 @@ def _full_candidates(
                         or y + 8 * y_step > height + slack_y
                     ):
                         continue
+                    checks += 1
+                    if checks > MAX_ALTERNATION_CHECKS:
+                        return candidates
                     fit, contrast = _alternation(rgb, x, y, x_step, y_step, 8, 8)
                     if fit < MIN_ALTERNATION or contrast < MIN_CONTRAST:
                         continue
@@ -254,23 +273,38 @@ def _looks_incomplete(
     return False
 
 
+def _select_boards(candidates: list[BoardRect]) -> tuple[BoardRect, ...]:
+    """Dedup overlapping candidates, filter thumbnails, return in reading order."""
+    if not candidates:
+        return ()
+    ordered = sorted(candidates, key=lambda c: (-round(c.score, 3), -c.area))
+    kept: list[BoardRect] = []
+    for candidate in ordered:
+        if not any(candidate.overlaps(other) for other in kept):
+            kept.append(candidate)
+    largest = max(board.area for board in kept)
+    similar = [b for b in kept if b.area >= SIMILAR_BOARD_AREA * largest]
+    return tuple(sorted(similar, key=lambda b: (b.y, b.x)))
+
+
 def find_boards(rgb: np.ndarray) -> GridResult:
     gray = cv2.cvtColor(rgb, cv2.COLOR_RGB2GRAY)
-    x_runs = _line_runs(gray, 1, 7)
-    y_runs = _line_runs(gray, 0, 7)
-    candidates = _full_candidates(rgb, gray, x_runs, y_runs)
 
-    if candidates:
-        # Prefer the best fit. Between equal fits prefer the larger, with its outer edges right.
-        ordered = sorted(candidates, key=lambda c: (-round(c.score, 3), -c.area))
-        kept: list[BoardRect] = []
-        for candidate in ordered:
-            if not any(candidate.overlaps(other) for other in kept):
-                kept.append(candidate)
-        largest = max(board.area for board in kept)
-        # Small boards next to a main one are usually thumbnails, so they don't count as a second.
-        similar = [b for b in kept if b.area >= SIMILAR_BOARD_AREA * largest]
-        return GridResult(boards=tuple(sorted(similar, key=lambda b: (b.y, b.x))))
+    # Try from the cleanest edge threshold down. Most boards are found at the highest threshold
+    # with only a handful of peaks, finishing in milliseconds. Lower thresholds add more peaks
+    # (and more noise from textures) and are only reached for images with weak grid edges.
+    for thresholds in (
+        EDGE_THRESHOLDS[2:],
+        EDGE_THRESHOLDS[1:],
+        EDGE_THRESHOLDS,
+    ):
+        x_runs = _line_runs(gray, 1, 7, thresholds=thresholds)
+        y_runs = _line_runs(gray, 0, 7, thresholds=thresholds)
+        candidates = _full_candidates(rgb, gray, x_runs, y_runs)
+        if candidates:
+            boards = _select_boards(candidates)
+            if boards:
+                return GridResult(boards=boards)
 
     longest = max(gray.shape) / 6
     if _looks_incomplete(rgb, _line_runs(gray, 1, 2, longest), _line_runs(gray, 0, 2, longest)):

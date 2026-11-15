@@ -86,6 +86,39 @@ def test_a_frame_around_the_board_doesnt_shift_the_grid():
     assert_located(find_boards(framed), 20, 20, 480)
 
 
+def test_a_textured_frame_with_coordinates_is_found():
+    """A wood-textured board with a beveled frame and coordinate labels."""
+    board_size, frame = 480, 35
+    total = board_size + 2 * frame
+    cell = board_size / 8
+    rng = np.random.default_rng(99)
+
+    image = np.full((total, total, 3), (70, 45, 30), dtype=np.uint8)
+    noise = rng.integers(-12, 12, image.shape, dtype=np.int16)
+    image = np.clip(image.astype(np.int16) + noise, 0, 255).astype(np.uint8)
+    for i in range(frame):
+        image[i, :] = np.clip(image[i, :].astype(np.int16) + 30 * (frame - i) // frame, 0, 255)
+        image[:, i] = np.clip(image[:, i].astype(np.int16) + 20 * (frame - i) // frame, 0, 255)
+
+    for row in range(8):
+        for column in range(8):
+            base = (210, 180, 140) if (row + column) % 2 == 0 else (150, 100, 60)
+            x0, y0 = frame + round(column * cell), frame + round(row * cell)
+            x1, y1 = frame + round((column + 1) * cell), frame + round((row + 1) * cell)
+            cv2.rectangle(image, (x0, y0), (x1 - 1, y1 - 1), base, -1)
+            for y in range(y0, y1):
+                shift = int(8 * np.sin(y * 0.15))
+                image[y, x0:x1] = np.clip(image[y, x0:x1].astype(np.int16) + shift, 0, 255)
+
+    for i in range(8):
+        pos = (frame + 3, frame + round(i * cell + cell * 0.35))
+        cv2.putText(image, str(8 - i), pos, cv2.FONT_HERSHEY_SIMPLEX, 0.35, (80, 50, 30), 1)
+        pos = (frame + round(i * cell + cell * 0.6), frame + board_size - 5)
+        cv2.putText(image, chr(ord("a") + i), pos, cv2.FONT_HERSHEY_SIMPLEX, 0.35, (200, 170, 130), 1)
+
+    assert_located(find_boards(image), frame, frame, board_size)
+
+
 def test_evenly_spaced_text_beside_the_board_doesnt_shift_the_grid():
     page = on_page(draw_board(800), 40, 30, height=880, width=1400)
     for row in range(36):
@@ -169,6 +202,30 @@ def test_a_plain_table_grid_isnt_a_board():
     result = find_boards(table)
     assert not result.boards
     assert not result.incomplete
+
+
+def test_grid_detection_finishes_in_time_on_noisy_images():
+    """Even with heavy texture, detection stays well under the API timeout."""
+    import time
+
+    rng = np.random.default_rng(7)
+    size = 1000
+    frame = 60
+    cell = (size - 2 * frame) / 8
+    image = rng.integers(50, 100, (size, size, 3), dtype=np.uint8)
+    for row in range(8):
+        for column in range(8):
+            base = np.array([200, 180, 140] if (row + column) % 2 == 0 else [140, 100, 60])
+            x0, y0 = frame + round(column * cell), frame + round(row * cell)
+            x1, y1 = frame + round((column + 1) * cell), frame + round((row + 1) * cell)
+            noise = rng.integers(-10, 10, (y1 - y0, x1 - x0, 3), dtype=np.int16)
+            image[y0:y1, x0:x1] = np.clip(base + noise, 0, 255).astype(np.uint8)
+
+    start = time.perf_counter()
+    result = find_boards(image)
+    elapsed = time.perf_counter() - start
+    assert elapsed < 5.0, f"took {elapsed:.1f}s"
+    assert len(result.boards) == 1
 
 
 def test_a_grid_of_more_than_eight_squares_isnt_located_as_part_of_itself():

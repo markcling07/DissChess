@@ -91,7 +91,7 @@ def _runs(peaks: list[int], min_lines: int, max_cell: float) -> list[tuple[float
                 continue
             if spacing > max_cell:
                 break
-            tolerance = max(1.6, spacing * 0.02)
+            tolerance = max(3.0, spacing * 0.04)
             line = [start, second]
             while True:
                 # The spacing estimate improves as the run grows, which handles fractional sizes.
@@ -209,7 +209,7 @@ def _full_candidates(
         if x_count < 7:
             continue
         for y_first, y_step, y_count in sorted(y_runs, key=lambda r: -r[2]):
-            if y_count < 7 or abs(x_step - y_step) > 0.04 * max(x_step, y_step):
+            if y_count < 7 or abs(x_step - y_step) > 0.12 * max(x_step, y_step):
                 continue
             # A run of 8 or 9 lines includes the board's outer edges, so every window is tried.
             for x_offset in range(x_count - 6):
@@ -248,7 +248,7 @@ def _looks_incomplete(
     height, width = rgb.shape[:2]
     for x_first, x_step, x_count in x_runs:
         for y_first, y_step, y_count in y_runs:
-            if abs(x_step - y_step) > 0.04 * max(x_step, y_step):
+            if abs(x_step - y_step) > 0.12 * max(x_step, y_step):
                 continue
             if max(x_count, y_count) < 5 or x_count + y_count < 7:
                 continue

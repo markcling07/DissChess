@@ -119,6 +119,30 @@ def test_a_textured_frame_with_coordinates_is_found():
     assert_located(find_boards(image), frame, frame, board_size)
 
 
+def test_a_board_with_slightly_non_square_cells_is_found():
+    """A board whose cells are 10% taller than wide, as in chess.com's 3D board view."""
+    cell_x, cell_y = 55, 50
+    board_w, board_h = cell_x * 8, cell_y * 8
+    frame = 30
+    total_w, total_h = board_w + 2 * frame, board_h + 2 * frame
+
+    image = np.full((total_h, total_w, 3), (60, 40, 25), dtype=np.uint8)
+    for row in range(8):
+        for col in range(8):
+            colour = LIGHT if (row + col) % 2 == 0 else DARK
+            x0, y0 = frame + col * cell_x, frame + row * cell_y
+            x1, y1 = frame + (col + 1) * cell_x, frame + (row + 1) * cell_y
+            cv2.rectangle(image, (x0, y0), (x1 - 1, y1 - 1), colour, -1)
+
+    result = find_boards(image)
+    assert len(result.boards) == 1, result
+    found = result.boards[0]
+    assert abs(found.x - frame) <= 3
+    assert abs(found.y - frame) <= 3
+    assert abs(found.size_x - board_w) <= 3
+    assert abs(found.size_y - board_h) <= 3
+
+
 def test_evenly_spaced_text_beside_the_board_doesnt_shift_the_grid():
     page = on_page(draw_board(800), 40, 30, height=880, width=1400)
     for row in range(36):

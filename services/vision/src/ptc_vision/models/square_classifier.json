@@ -1,5 +1,5 @@
 {
-  "version": "20261105",
+  "version": "20261115",
   "labels": [
     "empty",
     "P",
@@ -16,8 +16,8 @@
     "k"
   ],
   "tile_size": 40,
-  "temperature": 0.540047824382782,
-  "review_threshold": 0.9971436692237854,
+  "temperature": 0.5027919411659241,
+  "review_threshold": 0.9995,
   "parameters": 422261,
   "trained_on": {
     "cburnett": "GPL-2.0-or-later",
@@ -30,70 +30,73 @@
     "mpchess": "GPL-3.0-or-later",
     "totoy": "CC-BY-4.0",
     "papercut": "CC-BY-4.0",
-    "firi": "CC-BY-4.0"
+    "firi": "CC-BY-4.0",
+    "3d_wood": "chess.com, proprietary, used for ML training",
+    "neo_wood": "chess.com, proprietary, used for ML training",
+    "wood_cc": "chess.com, proprietary, used for ML training"
   },
   "calibrated_on": {
     "chessnut": "Apache-2.0",
     "celtic": "MIT"
   },
-  "training_tiles": 259798,
-  "calibration_accuracy": 0.9963613748550415,
+  "training_tiles": 259695,
+  "calibration_accuracy": 0.9987226128578186,
   "threshold_stats": {
-    "errors": 94,
-    "error_recall": 0.978723406791687,
-    "flag_rate": 0.030463729053735733
+    "errors": 33,
+    "error_recall": 0.939393937587738,
+    "flag_rate": 0.055237285792827606
   },
-  "best_epoch": 7,
+  "best_epoch": 5,
   "history": [
     {
       "epoch": 1,
-      "calibration_accuracy": 0.9759619235992432,
-      "loss": 0.10820887982845306
+      "calibration_accuracy": 0.9723232984542847,
+      "loss": 0.12554137408733368
     },
     {
       "epoch": 2,
-      "calibration_accuracy": 0.9888905882835388,
-      "loss": 0.11670619249343872
+      "calibration_accuracy": 0.9907099008560181,
+      "loss": 0.08986140042543411
     },
     {
       "epoch": 3,
-      "calibration_accuracy": 0.9862584471702576,
-      "loss": 0.08858931809663773
+      "calibration_accuracy": 0.9884648323059082,
+      "loss": 0.0919644683599472
     },
     {
       "epoch": 4,
-      "calibration_accuracy": 0.9893164038658142,
-      "loss": 0.07540237903594971
+      "calibration_accuracy": 0.9943098425865173,
+      "loss": 0.06588951498270035
     },
     {
       "epoch": 5,
-      "calibration_accuracy": 0.9878454804420471,
-      "loss": 0.07946781069040298
+      "calibration_accuracy": 0.9987226128578186,
+      "loss": 0.04107470437884331
     },
     {
       "epoch": 6,
-      "calibration_accuracy": 0.9949678778648376,
-      "loss": 0.055746544152498245
+      "calibration_accuracy": 0.9967484474182129,
+      "loss": 0.05929166078567505
     },
     {
       "epoch": 7,
-      "calibration_accuracy": 0.9963613748550415,
-      "loss": 0.049954209476709366
+      "calibration_accuracy": 0.9977548718452454,
+      "loss": 0.04492552578449249
     },
     {
       "epoch": 8,
-      "calibration_accuracy": 0.9903615117073059,
-      "loss": 0.06842296570539474
+      "calibration_accuracy": 0.9926066398620605,
+      "loss": 0.06023400276899338
     },
     {
       "epoch": 9,
-      "calibration_accuracy": 0.9892002940177917,
-      "loss": 0.07450152933597565
+      "calibration_accuracy": 0.9961678385734558,
+      "loss": 0.050742097198963165
     },
     {
       "epoch": 10,
-      "calibration_accuracy": 0.9903228282928467,
-      "loss": 0.0690670758485794
+      "calibration_accuracy": 0.9970194101333618,
+      "loss": 0.04845140501856804
     }
   ]
 }

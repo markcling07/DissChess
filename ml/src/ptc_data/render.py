@@ -138,8 +138,18 @@ def _recolour(piece: Image.Image, rng: random.Random, white: bool) -> Image.Imag
 def _piece_image(piece_set: str, code: str, size: int) -> Image.Image:
     white = code.isupper()
     path = PIECES_DIR / piece_set / f"{'w' if white else 'b'}{code.upper()}.png"
-    with Image.open(path) as image:
-        return image.convert("RGBA").resize((size, size), Image.LANCZOS)
+    with Image.open(path) as raw:
+        rgba = raw.convert("RGBA")
+        w, h = rgba.size
+        if abs(w - h) <= 1:
+            return rgba.resize((size, size), Image.LANCZOS)
+        # Non-square piece: scale to fit inside the square, centre on a transparent canvas.
+        ratio = min(size / w, size / h)
+        new_w, new_h = round(w * ratio), round(h * ratio)
+        scaled = rgba.resize((new_w, new_h), Image.LANCZOS)
+        canvas = Image.new("RGBA", (size, size), (0, 0, 0, 0))
+        canvas.paste(scaled, ((size - new_w) // 2, size - new_h))
+        return canvas
 
 
 @lru_cache(maxsize=32)

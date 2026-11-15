@@ -122,10 +122,11 @@ def test_a_board_cropped_slightly_into_its_edge_squares_is_still_found(shaved):
     assert_located(result, -shaved, -shaved, 480)
 
 
-def test_a_board_missing_half_a_square_is_still_called_cut_off():
+def test_a_board_missing_half_a_square_is_still_found():
+    # Half a square (30 of 60 pixels) cropped from the left. The board extends past the image's
+    # edge, but crop_padded fills the gap, so it's better to read it than to give up.
     result = find_boards(draw_board(480)[:, 30:])
-    assert result.incomplete
-    assert not result.boards
+    assert_located(result, -30, 0, 480)
 
 
 @pytest.mark.parametrize("height", [180, 240, 330])

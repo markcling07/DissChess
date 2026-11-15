@@ -53,8 +53,9 @@ class GridResult:
 
 
 # How far a board may run past the image's edge, in squares, and still be read. Screenshots are
-# often cropped right on the board, shaving a little off the edge squares.
-EDGE_SLACK = 0.25
+# often cropped right on the board, and the detected grid lines can place the board origin slightly
+# outside the image due to rounding and anti-aliased edges. One full square is enough for both.
+EDGE_SLACK = 1.0
 
 
 def _peaks(profile: np.ndarray, min_height: float) -> list[int]:

@@ -46,6 +46,7 @@ function samePosition(a: string, b: string): boolean {
 export function SetupScreen({
   setup,
   review = null,
+  orientation = "w",
   dispatch,
   onStart,
   onUseImage,
@@ -53,6 +54,7 @@ export function SetupScreen({
 }: {
   setup: PositionSetup;
   review?: ReviewState | null;
+  orientation?: Color;
   dispatch: Dispatch<SessionAction>;
   /** Moves come along when the position is the one a pasted move list reached, unchanged since. */
   onStart: (fen: string, moves?: PastedMoves) => void;
@@ -153,7 +155,7 @@ export function SetupScreen({
       <section className="layout__board" aria-label="Position">
         <Board
           placement={toPlacementString(setup.placement)}
-          orientation="w"
+          orientation={orientation}
           highlights={highlights}
           dragNewPiece={dragNewPiece}
           interaction={
@@ -248,13 +250,7 @@ export function SetupScreen({
             <button type="button" onClick={() => dispatch({ type: "rotate" })}>
               Rotate pieces 90°
             </button>
-            <button
-              type="button"
-              onClick={() => {
-                dispatch({ type: "rotate" });
-                dispatch({ type: "rotate" });
-              }}
-            >
+            <button type="button" onClick={() => dispatch({ type: "flipOrientation" })}>
               Turn board around
             </button>
             {onUseImage && (

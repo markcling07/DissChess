@@ -38,6 +38,7 @@ export function App() {
         <SetupScreen
           setup={session.setup}
           review={session.review}
+          orientation={session.orientation}
           dispatch={dispatch}
           onUseImage={() => setScreen("input")}
           lastStart={start}
@@ -48,7 +49,13 @@ export function App() {
         />
       )}
       {screen === "game" && (
-        <GameScreen key={start.fen} startFen={start.fen} pasted={start.moves} onEdit={() => setScreen("setup")} />
+        <GameScreen
+          key={start.fen}
+          startFen={start.fen}
+          pasted={start.moves}
+          initialOrientation={session.orientation}
+          onEdit={() => setScreen("setup")}
+        />
       )}
     </>
   );

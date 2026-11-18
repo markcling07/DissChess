@@ -144,11 +144,13 @@ function OpponentChooser({
 export function GameScreen({
   startFen,
   pasted,
+  initialOrientation = "w",
   onEdit,
 }: {
   startFen: string;
   /** The moves that reached startFen, when they were pasted, so they can be reviewed and saved. */
   pasted?: PastedMoves;
+  initialOrientation?: Color;
   onEdit: () => void;
 }) {
   const game = useMemo(
@@ -156,7 +158,7 @@ export function GameScreen({
     [startFen, pasted],
   );
   const [version, refresh] = useReducer((current: number) => current + 1, 0);
-  const [orientation, setOrientation] = useState<Color>("w");
+  const [orientation, setOrientation] = useState<Color>(initialOrientation);
   const [pendingPromotion, setPendingPromotion] = useState<{ from: Square; to: Square } | null>(null);
   const [copied, setCopied] = useState(false);
   const [opponent, setOpponent] = useState<Opponent | null>(null);

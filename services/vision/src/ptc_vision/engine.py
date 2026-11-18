@@ -137,14 +137,12 @@ def _square_name(row: int, column: int, white_at_bottom: bool) -> str:
     return f"{FILES[7 - column]}{row + 1}"
 
 
-def _preview(rgb: np.ndarray, rect: BoardRect, white_at_bottom: bool) -> str:
-    """The located board as a small JPEG, turned to match the position shown beside it."""
+def _preview(rgb: np.ndarray, rect: BoardRect) -> str:
+    """The located board as a small JPEG, kept in the original image orientation."""
     left, top = round(rect.x), round(rect.y)
     right, bottom = round(rect.x + rect.size_x), round(rect.y + rect.size_y)
     board = crop_padded(rgb, left, top, right, bottom)
     board = cv2.resize(board, (PREVIEW_SIZE, PREVIEW_SIZE), cv2.INTER_AREA)
-    if not white_at_bottom:
-        board = cv2.rotate(board, cv2.ROTATE_180)
     encoded, jpeg = cv2.imencode(
         ".jpg", cv2.cvtColor(board, cv2.COLOR_RGB2BGR), [cv2.IMWRITE_JPEG_QUALITY, 80]
     )
@@ -230,7 +228,7 @@ class ScreenshotRecognizer:
             self._square_result(square, chances[square], chosen[square], square in conflicts)
             for square in ALL_SQUARES
         ]
-        preview = _preview(rgb, rect, white_at_bottom)
+        preview = _preview(rgb, rect)
         clock.lap("assemble")
 
         return RecognitionSuccess(

@@ -18,7 +18,7 @@ vi.mock("./Board", () => ({
 }));
 
 function Setup({ initial, onStart }: { initial: PositionSetup; onStart: (fen: string) => void }) {
-  const [session, dispatch] = useReducer(sessionReducer, { setup: initial, review: null });
+  const [session, dispatch] = useReducer(sessionReducer, { setup: initial, review: null, orientation: "w" as const });
   return <SetupScreen setup={session.setup} review={session.review} dispatch={dispatch} onStart={onStart} />;
 }
 
@@ -124,7 +124,7 @@ describe("setup screen", () => {
     const start = "rnbqkbnr/pppp1ppp/8/4p3/4P3/5N2/PPPP1PPP/RNBQKB1R b KQkq - 1 2";
     const moves = { startFen: "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1", sans: ["e4", "e5", "Nf3"] };
     function Returning() {
-      const [session, dispatch] = useReducer(sessionReducer, undefined, () => ({ setup: parseFen(start), review: null }));
+      const [session, dispatch] = useReducer(sessionReducer, undefined, () => ({ setup: parseFen(start), review: null, orientation: "w" as const }));
       return (
         <SetupScreen
           setup={session.setup}

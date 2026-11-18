@@ -334,11 +334,10 @@ class PhotoRecognizer:
 
 
 def _preview(rgb: np.ndarray, points: np.ndarray, turns_cw: int) -> str | None:
-    """The board seen from straight above, turned so White is at the bottom."""
+    """The board seen from straight above, kept in the original orientation."""
     target = GRID * (PREVIEW_SIZE / 8)
     warp = cv2.getPerspectiveTransform(points, target.astype(np.float32))
     flat = cv2.warpPerspective(rgb, warp, (PREVIEW_SIZE, PREVIEW_SIZE))
-    flat = np.rot90(flat, -turns_cw).copy()
     ok, encoded = cv2.imencode(
         ".jpg", cv2.cvtColor(flat, cv2.COLOR_RGB2BGR), [cv2.IMWRITE_JPEG_QUALITY, 80]
     )

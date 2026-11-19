@@ -50,7 +50,7 @@ class Style:
 
 # Pieces whose bodies can look alike, so only the top tells them apart. A person reads a king by its
 # cross. Swapping bodies between them stops a model from relying on the body instead.
-BODY_SWAP_PARTNERS = {"K": "Q", "Q": "K", "B": "P"}
+BODY_SWAP_PARTNERS = {"K": "Q", "Q": "K", "B": "P", "P": "B"}
 
 
 def _varied_piece(
@@ -63,7 +63,8 @@ def _varied_piece(
 
     if rng.random() < 0.55:
         # Keep this piece's top, and give it another design's body.
-        if upper in BODY_SWAP_PARTNERS and rng.random() < 0.35:
+        swap_rate = 0.50 if upper in ("B", "P") else 0.35
+        if upper in BODY_SWAP_PARTNERS and rng.random() < swap_rate:
             other = BODY_SWAP_PARTNERS[upper]
             other = other if white else other.lower()
         else:

@@ -204,7 +204,7 @@ class PhotoRecognizer:
         left = max(0, int(points[:, 0].min() - side * 0.1))
         right = min(width, int(points[:, 0].max() + side * 0.1))
         top = max(0, int(points[:, 1].min() - side * 0.18))
-        bottom = min(height, int(points[:, 1].max() + side * 0.1))
+        bottom = min(height, int(points[:, 1].max() + side * 0.2))
         detections = self._detector.detect(rgb[top:bottom, left:right])
         timings["detect"] = round((time.perf_counter() - started) * 1000, 2) - timings["decode"]
 

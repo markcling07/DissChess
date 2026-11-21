@@ -260,6 +260,11 @@ def _looks_incomplete(
             rows = min(8, int((y_end - y) / y_step))
             if columns < 2 or rows < 2 or columns * rows < 8 or (columns == 8 and rows == 8):
                 continue
+            # If a full 8x8 board at this spacing would fit in the image, the
+            # missing lines are probably hidden by move arrows or annotations.
+            slack = max(x_step, y_step) * EDGE_SLACK
+            if x + 8 * x_step <= width + slack and y + 8 * y_step <= height + slack:
+                continue
             # Only a board running off the image counts as cut off.
             margin = max(x_step, y_step) * 1.2
             touches_edge = (

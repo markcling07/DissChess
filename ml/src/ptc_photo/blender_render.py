@@ -599,7 +599,9 @@ def place_camera(rng, width, height, tallest, top_down: bool = False) -> bpy.typ
     if top_down:
         elevation = math.radians(rng.uniform(70, 88))
     else:
-        elevation = math.radians(rng.choice([rng.uniform(30, 60), rng.uniform(45, 88)]))
+        elevation = math.radians(
+            rng.choice([rng.uniform(20, 50), rng.uniform(30, 65), rng.uniform(50, 88)])
+        )
     target = Vector((rng.uniform(-0.8, 0.8), rng.uniform(-0.8, 0.8), 0))
     roll = math.radians(rng.gauss(0, 4))
     fill = rng.uniform(0.75, 1.0)

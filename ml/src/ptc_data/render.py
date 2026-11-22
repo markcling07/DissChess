@@ -464,6 +464,81 @@ def _draw_arrows(image: Image.Image, rng: random.Random, flipped: bool, cell: fl
     return Image.alpha_composite(image.convert("RGBA"), overlay).convert("RGB")
 
 
+_TEXT_PHRASES = [
+    "Brilliant or Blunder?",
+    "Game Over",
+    "Checkmate",
+    "Stalemate",
+    "White wins",
+    "Black wins",
+    "Draw",
+    "1-0",
+    "0-1",
+    "½-½",
+    "Resign",
+    "Puzzle",
+    "Find the best move",
+    "Your turn",
+    "!!",
+    "??",
+    "!?",
+    "?!",
+    "BEST MOVE",
+    "BLUNDER",
+    "BRILLIANT",
+    "GREAT MOVE",
+    "MISTAKE",
+    "INACCURACY",
+    "MISSED WIN",
+    "BOOK",
+]
+
+
+def _draw_text_overlay(
+    image: Image.Image, rng: random.Random, cell: float
+) -> Image.Image:
+    """Draws text across the board, as chess sites do for puzzles and game-over screens."""
+    overlay = Image.new("RGBA", image.size, (0, 0, 0, 0))
+    draw = ImageDraw.Draw(overlay)
+    board_size = image.size[0]
+
+    text = rng.choice(_TEXT_PHRASES)
+    font_scale = rng.uniform(0.4, 1.2) if len(text) <= 4 else rng.uniform(0.15, 0.5)
+    font = _font(round(cell * font_scale))
+
+    bright = rng.random() < 0.5
+    colour = (
+        (rng.randint(200, 255), rng.randint(200, 255), rng.randint(200, 255))
+        if bright
+        else (rng.randint(0, 60), rng.randint(0, 60), rng.randint(0, 60))
+    )
+    alpha = rng.randint(160, 240)
+
+    bbox = draw.textbbox((0, 0), text, font=font)
+    tw, th = bbox[2] - bbox[0], bbox[3] - bbox[1]
+    x = rng.uniform(0, max(0, board_size - tw))
+    y = rng.uniform(cell * 1.5, max(cell * 2, board_size - th - cell))
+
+    if rng.random() < 0.4:
+        pad = round(cell * 0.15)
+        draw.rectangle(
+            [x - pad, y - pad, x + tw + pad, y + th + pad],
+            fill=((40, 40, 40, 200) if bright else (240, 240, 240, 180)),
+        )
+
+    if rng.random() < 0.5:
+        shadow_offset = max(1, round(cell * 0.03))
+        draw.text(
+            (x + shadow_offset, y + shadow_offset),
+            text,
+            fill=(0, 0, 0, alpha // 2),
+            font=font,
+        )
+
+    draw.text((x, y), text, fill=(*colour, alpha), font=font)
+    return Image.alpha_composite(image.convert("RGBA"), overlay).convert("RGB")
+
+
 def render_board(
     rng: random.Random, style: Style, board: dict[str, str], size: int, flipped: bool
 ) -> BoardRender:
@@ -483,6 +558,9 @@ def render_board(
     if rng.random() < 0.12:
         tags.append("arrows")
         image = _draw_arrows(image, rng, flipped, cell)
+    if rng.random() < 0.10:
+        tags.append("text-overlay")
+        image = _draw_text_overlay(image, rng, cell)
 
     image = image.resize((size, size), Image.LANCZOS)
     return BoardRender(image=image, board=board, flipped=flipped, tags=tuple(tags))

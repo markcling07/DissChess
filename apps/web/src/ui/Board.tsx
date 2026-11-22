@@ -36,8 +36,8 @@ export interface BoardProps {
   interaction: BoardInteraction;
   /** Extra classes for particular squares, such as ones needing attention. */
   highlights?: ReadonlyMap<Square, string>;
-  /** Arrows drawn over the board, such as the engine's best move. */
-  arrows?: readonly { from: Square; to: Square }[];
+  /** Arrows drawn over the board, such as the engine's best move or predictions. */
+  arrows?: readonly { from: Square; to: Square; brush?: string }[];
   /** Filled in with a function that starts dragging a new piece from outside the board. */
   dragNewPiece?: { current: ((piece: PieceCode, event: PointerEvent) => void) | null };
 }
@@ -57,7 +57,7 @@ function buildConfig(props: BoardProps, onEvent: () => BoardProps): Config {
     drawable: {
       enabled: false,
       visible: true,
-      autoShapes: arrows.map(({ from, to }) => ({ orig: from, dest: to, brush: "paleBlue" })),
+      autoShapes: arrows.map(({ from, to, brush }) => ({ orig: from, dest: to, brush: brush ?? "paleBlue" })),
     },
     highlight: { custom: new Map(highlights) as Map<Key, string> },
   };

@@ -6,6 +6,7 @@ import type { GameReview } from "../engine/review";
 import { ENGINE_UNAVAILABLE, getEngine } from "../engine/sharedEngine";
 import { DEFAULT_STRENGTH, STRENGTHS, type Strength } from "../engine/strength";
 import { parseUciMove } from "../engine/uci";
+import { usePrediction } from "../engine/usePrediction";
 import { AnalysisPanel } from "./AnalysisPanel";
 import { Board } from "./Board";
 import { MoveImages } from "./MoveImages";
@@ -169,11 +170,15 @@ export function GameScreen({
   const [savingPictures, setSavingPictures] = useState(false);
   const [bestMove, setBestMove] = useState<{ from: Square; to: Square } | null>(null);
   const showBestMove = useCallback((move: { from: Square; to: Square } | null) => setBestMove(move), []);
+  const [predicting, setPredicting] = useState(false);
 
   const status = game.status();
   const firstMoveNumber = useMemo(() => new Chess(game.startFen).moveNumber(), [game]);
   const fen = game.fen;
   const computerToMove = opponent !== null && status.kind === "playing" && game.turn === opponent.computer;
+
+  const predictionEngine = useMemo(() => (predicting ? getEngine() : null), [predicting]);
+  const prediction = usePrediction(predictionEngine, fen, predicting && !computerToMove);
 
   useEffect(() => {
     if (!computerToMove || !opponent) return;
@@ -253,7 +258,14 @@ export function GameScreen({
               check: status.kind === "playing" ? status.check : status.kind === "checkmate",
               onMove: handleMove,
             }}
-            arrows={analysing && bestMove ? [bestMove] : []}
+            arrows={[
+              ...(analysing && bestMove ? [bestMove] : []),
+              ...prediction.arrows.map((a) => ({
+                from: a.from,
+                to: a.to,
+                brush: a.rank === 1 ? "paleGreen" : "green",
+              })),
+            ]}
           />
           {pendingPromotion && (
             <PromotionDialog
@@ -317,6 +329,9 @@ export function GameScreen({
           )}
           <button type="button" onClick={() => setAnalysing(!analysing)}>
             {analysing ? "Hide analysis" : "Analyze position"}
+          </button>
+          <button type="button" onClick={() => setPredicting(!predicting)}>
+            {predicting ? "Hide predictions" : "Predict moves"}
           </button>
           <button type="button" disabled={game.moveCount === 0} onClick={() => setSavingPictures(!savingPictures)}>
             Save moves as pictures

@@ -333,7 +333,10 @@ def _draw_highlights(
 
     if rng.random() < 0.65:
         tags.append("last-move")
-        colour = rng.choice([(155, 199, 0), (246, 246, 105), (205, 210, 106), (130, 180, 240)])
+        colour = rng.choice([
+            (155, 199, 0), (246, 246, 105), (205, 210, 106), (130, 180, 240),
+            (235, 169, 56), (186, 140, 68), (170, 162, 58), (255, 170, 0),
+        ])
         alpha = rng.randint(70, 170)
         for square in rng.sample(squares, 2):
             _tint(draw, box(square), colour, alpha)
@@ -555,7 +558,7 @@ def render_board(
         tags.append("coordinates")
         _draw_coordinates(image, rng, flipped, cell, style)
     _draw_pieces(image, rng, board, style, flipped, cell)
-    if rng.random() < 0.12:
+    if rng.random() < 0.25:
         tags.append("arrows")
         image = _draw_arrows(image, rng, flipped, cell)
     if rng.random() < 0.10:

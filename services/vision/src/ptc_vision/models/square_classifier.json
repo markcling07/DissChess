@@ -1,5 +1,5 @@
 {
-  "version": "20261119",
+  "version": "20261122",
   "labels": [
     "empty",
     "P",
@@ -16,8 +16,8 @@
     "k"
   ],
   "tile_size": 40,
-  "temperature": 0.7238216400146484,
-  "review_threshold": 0.9681849313735962,
+  "temperature": 0.7996554374694824,
+  "review_threshold": 0.9917724562644958,
   "parameters": 422261,
   "trained_on": {
     "cburnett": "GPL-2.0-or-later",
@@ -39,64 +39,64 @@
     "chessnut": "Apache-2.0",
     "celtic": "MIT"
   },
-  "training_tiles": 259780,
-  "calibration_accuracy": 0.9805682301521301,
+  "training_tiles": 260028,
+  "calibration_accuracy": 0.9708074331283569,
   "threshold_stats": {
-    "errors": 502,
-    "error_recall": 0.9721115827560425,
-    "flag_rate": 0.057675931602716446
+    "errors": 756,
+    "error_recall": 0.9735449552536011,
+    "flag_rate": 0.6262115240097046
   },
-  "best_epoch": 5,
+  "best_epoch": 4,
   "history": [
     {
       "epoch": 1,
-      "calibration_accuracy": 0.9729426503181458,
-      "loss": 0.12401454150676727
+      "calibration_accuracy": 0.97096186876297,
+      "loss": 0.13102082908153534
     },
     {
       "epoch": 2,
-      "calibration_accuracy": 0.9851358532905579,
-      "loss": 0.11834719777107239
+      "calibration_accuracy": 0.9588755369186401,
+      "loss": 0.22472167015075684
     },
     {
       "epoch": 3,
-      "calibration_accuracy": 0.9604009985923767,
-      "loss": 0.19531503319740295
+      "calibration_accuracy": 0.9742827415466309,
+      "loss": 0.12534251809120178
     },
     {
       "epoch": 4,
-      "calibration_accuracy": 0.9694588780403137,
-      "loss": 0.14108094573020935
+      "calibration_accuracy": 0.9708074331283569,
+      "loss": 0.12347884476184845
     },
     {
       "epoch": 5,
-      "calibration_accuracy": 0.9805682301521301,
-      "loss": 0.10015015304088593
+      "calibration_accuracy": 0.9660192131996155,
+      "loss": 0.12803581357002258
     },
     {
       "epoch": 6,
-      "calibration_accuracy": 0.9623364806175232,
-      "loss": 0.15236173570156097
+      "calibration_accuracy": 0.9657875299453735,
+      "loss": 0.12814266979694366
     },
     {
       "epoch": 7,
-      "calibration_accuracy": 0.9597429633140564,
-      "loss": 0.15417352318763733
+      "calibration_accuracy": 0.9704985022544861,
+      "loss": 0.126534566283226
     },
     {
       "epoch": 8,
-      "calibration_accuracy": 0.9672524333000183,
-      "loss": 0.1540471613407135
+      "calibration_accuracy": 0.9648994207382202,
+      "loss": 0.14043055474758148
     },
     {
       "epoch": 9,
-      "calibration_accuracy": 0.9674072861671448,
-      "loss": 0.146908700466156
+      "calibration_accuracy": 0.9716569781303406,
+      "loss": 0.12779660522937775
     },
     {
       "epoch": 10,
-      "calibration_accuracy": 0.9689169526100159,
-      "loss": 0.14526306092739105
+      "calibration_accuracy": 0.9715797305107117,
+      "loss": 0.1294735223054886
     }
   ]
 }

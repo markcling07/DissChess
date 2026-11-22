@@ -274,6 +274,17 @@ def _looks_incomplete(
                 continue
             fit, contrast = _alternation(rgb, x, y, x_step, y_step, columns, rows)
             if fit >= 0.9 and contrast >= MIN_CONTRAST:
+                # Before declaring incomplete, verify the image isn't a full
+                # board whose grid lines were hidden by overlays. When the
+                # step estimate from partial data is close to min(w,h)/8, an
+                # 8x8 alternation check at that step confirms the board.
+                cell = min(width, height) / 8
+                if abs(cell - x_step) < x_step * 0.08 and abs(cell - y_step) < y_step * 0.08:
+                    bx = max(0.0, (width - 8 * cell) / 2)
+                    by = max(0.0, (height - 8 * cell) / 2)
+                    full_fit, full_contrast = _alternation(rgb, bx, by, cell, cell, 8, 8)
+                    if full_fit >= MIN_ALTERNATION and full_contrast >= MIN_CONTRAST:
+                        return False
                 return True
     return False
 
@@ -310,6 +321,22 @@ def find_boards(rgb: np.ndarray) -> GridResult:
             boards = _select_boards(candidates)
             if boards:
                 return GridResult(boards=boards)
+
+    # When overlays (arrows, highlights, text) hide enough grid lines for
+    # _full_candidates to miss the board, try the whole image as a board:
+    # if alternation holds at min(width, height)/8, the board fills the image.
+    cell = min(gray.shape) / 8
+    if cell >= MIN_CELL:
+        h, w = rgb.shape[:2]
+        bx = max(0.0, (w - 8 * cell) / 2)
+        by = max(0.0, (h - 8 * cell) / 2)
+        fit, contrast = _alternation(rgb, bx, by, cell, cell, 8, 8)
+        if fit >= MIN_ALTERNATION and contrast >= MIN_CONTRAST:
+            support = _line_support(gray, bx, by, cell, cell)
+            if support >= MIN_LINE_SUPPORT:
+                return GridResult(
+                    boards=(BoardRect(bx, by, 8 * cell, 8 * cell, fit * support),)
+                )
 
     longest = max(gray.shape) / 6
     if _looks_incomplete(rgb, _line_runs(gray, 1, 2, longest), _line_runs(gray, 0, 2, longest)):

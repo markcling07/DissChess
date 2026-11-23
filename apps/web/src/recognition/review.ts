@@ -59,6 +59,15 @@ export function setupFromRecognition(result: RecognitionSuccess): PositionSetup 
   };
 }
 
+const CLIENT_REVIEW_THRESHOLD = 0.9;
+const CLIENT_CLOSE_ALTERNATIVE = 0.1;
+
+function worthReviewing(reading: SquareReading): boolean {
+  if (reading.confidence < CLIENT_REVIEW_THRESHOLD) return true;
+  const top = reading.alternatives[0];
+  return top !== undefined && top.probability >= CLIENT_CLOSE_ALTERNATIVE;
+}
+
 export function reviewFromRecognition(result: RecognitionSuccess): ReviewState {
   const readings = new Map<Square, SquareReading>();
   const flagged = new Map<Square, SquareReading>();
@@ -69,7 +78,8 @@ export function reviewFromRecognition(result: RecognitionSuccess): ReviewState {
       alternatives: square.alternatives,
     };
     readings.set(square.square as Square, reading);
-    if (square.needs_review) flagged.set(square.square as Square, reading);
+    if (square.needs_review && worthReviewing(reading))
+      flagged.set(square.square as Square, reading);
   }
   return {
     preview: result.rectified_preview,

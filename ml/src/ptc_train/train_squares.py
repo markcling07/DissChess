@@ -95,7 +95,7 @@ def choose_review_threshold(
     wrong_confidence = confidence[wrong].sort().values
     index = min(len(wrong_confidence) - 1, int(TARGET_ERROR_RECALL * len(wrong_confidence)))
     # Kept between sensible bounds, since a few errors shouldn't move this very far.
-    threshold = float(np.clip(float(wrong_confidence[index]) + 1e-4, 0.8, 0.9995))
+    threshold = float(np.clip(float(wrong_confidence[index]) + 1e-4, 0.8, 0.98))
     return threshold, {
         "errors": int(wrong.sum()),
         "error_recall": float((wrong_confidence < threshold).float().mean()),

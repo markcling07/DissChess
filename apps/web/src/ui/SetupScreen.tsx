@@ -172,27 +172,13 @@ export function SetupScreen({
 
         {locked ? (
           <>
-            <p className="hint">
-              {canStartNow
-                ? "Who's turn?"
-                : unresolved > 0
+            {!canStartNow && (
+              <p className="hint">
+                {unresolved > 0
                   ? "Some squares need checking first. They're marked on the board and listed with the reading."
                   : "This position has a problem to fix first. It's listed with the settings."}
-            </p>
-            <div className="start-choice" role="group" aria-label="Start the game">
-              {quickSides.map((color) => (
-                <button
-                  key={color}
-                  type="button"
-                  className="start-choice__king"
-                  disabled={startingAs(color) === null}
-                  onClick={() => startAs(color)}
-                  aria-label={`${SIDE_NAME[color]} to play`}
-                >
-                  <PieceImage piece={color === "w" ? "K" : "k"} />
-                </button>
-              ))}
-            </div>
+              </p>
+            )}
             <div className="actions">
               <button type="button" onClick={() => setFixing(true)}>
                 Fix a piece
@@ -279,28 +265,48 @@ export function SetupScreen({
         <h1>{review ? "Check the position" : "Set up the position"}</h1>
         {review && <ReviewPanel review={review} dispatch={dispatch} />}
 
-        <fieldset>
-          <legend>Whose turn is it?</legend>
-          <div className="segmented">
-            {(["w", "b"] as const).map((color) => (
-              <label key={color} className="segmented__option">
-                <input
-                  type="radio"
-                  name="side"
-                  checked={side === color}
-                  disabled={forcedSide !== null}
-                  onChange={() => dispatch({ type: "setSide", side: color })}
-                />
-                <span>{SIDE_NAME[color]}</span>
-              </label>
-            ))}
+        {locked ? (
+          <div>
+            <h2 className="analysis__heading">Who's turn?</h2>
+            <div className="start-choice" role="group" aria-label="Start the game">
+              {quickSides.map((color) => (
+                <button
+                  key={color}
+                  type="button"
+                  className="start-choice__king"
+                  disabled={startingAs(color) === null}
+                  onClick={() => startAs(color)}
+                  aria-label={`${SIDE_NAME[color]} to play`}
+                >
+                  <PieceImage piece={color === "w" ? "K" : "k"} />
+                </button>
+              ))}
+            </div>
           </div>
-          {forcedSide && (
-            <p className="hint">
-              {SIDE_NAME[forcedSide]} is in check, so it must be {SIDE_NAME[forcedSide]}'s turn.
-            </p>
-          )}
-        </fieldset>
+        ) : (
+          <fieldset>
+            <legend>Whose turn is it?</legend>
+            <div className="segmented">
+              {(["w", "b"] as const).map((color) => (
+                <label key={color} className="segmented__option">
+                  <input
+                    type="radio"
+                    name="side"
+                    checked={side === color}
+                    disabled={forcedSide !== null}
+                    onChange={() => dispatch({ type: "setSide", side: color })}
+                  />
+                  <span>{SIDE_NAME[color]}</span>
+                </label>
+              ))}
+            </div>
+            {forcedSide && (
+              <p className="hint">
+                {SIDE_NAME[forcedSide]} is in check, so it must be {SIDE_NAME[forcedSide]}'s turn.
+              </p>
+            )}
+          </fieldset>
+        )}
 
         <details className="more">
           <summary>En passant and move numbers</summary>

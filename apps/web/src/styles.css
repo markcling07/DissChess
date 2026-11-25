@@ -318,6 +318,7 @@ button.armed:hover:not(:disabled) {
   align-items: center;
   justify-content: center;
   border-radius: 50%;
+  overflow: visible;
   transition: transform 150ms ease, opacity 150ms ease;
 }
 
@@ -334,6 +335,13 @@ button.armed:hover:not(:disabled) {
 .start-choice__king .piece-image {
   width: 64px;
   height: 64px;
+  max-width: none;
+}
+
+.start-choice__king .piece-image piece {
+  background-size: 80%;
+  background-position: center;
+  background-repeat: no-repeat;
 }
 
 @media (max-width: 899px) {

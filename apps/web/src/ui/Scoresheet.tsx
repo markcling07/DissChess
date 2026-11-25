@@ -3,6 +3,13 @@ import type { ScoresheetRow } from "../chess/game";
 
 const MINIMUM_ROWS = 0;
 
+const MARK_CLASS: Record<string, string> = {
+  "!!": "sheet__mark--brilliant",
+  "?!": "sheet__mark--inaccuracy",
+  "?": "sheet__mark--mistake",
+  "??": "sheet__mark--blunder",
+};
+
 export function Scoresheet({
   rows,
   result,
@@ -30,7 +37,7 @@ export function Scoresheet({
     return (
       <>
         {san}
-        {mark && <span className={mark.startsWith("!") ? "sheet__mark sheet__mark--good" : "sheet__mark"}>{mark}</span>}
+        {mark && <span className={`sheet__mark ${MARK_CLASS[mark] ?? ""}`}>{mark}</span>}
       </>
     );
   };

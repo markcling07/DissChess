@@ -1074,9 +1074,21 @@ button.corners__unsure[aria-pressed="true"] {
   color: #c8321e;
 }
 
-.sheet__mark--good {
-  color: #e6a829;
+.sheet__mark--brilliant {
+  color: #26c9c3;
   font-weight: 700;
+}
+
+.sheet__mark--inaccuracy {
+  color: #e6a829;
+}
+
+.sheet__mark--mistake {
+  color: #e07a30;
+}
+
+.sheet__mark--blunder {
+  color: #d94040;
 }
 
 .reviewed__move--brilliant {

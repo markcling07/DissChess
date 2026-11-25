@@ -127,11 +127,23 @@ function sprite(code: string, size: number): Promise<HTMLCanvasElement> {
   return cached;
 }
 
+/**
+ * Gives an SVG one exact size, as some browsers won't draw one that has none. Any size it already
+ * has is removed first, because an attribute written twice makes the file invalid. Either kind of
+ * quote is handled, because the build rewrites small SVGs with single quotes when it inlines them.
+ */
+export function sizedSvg(svg: string, size: number): string {
+  return svg.replace(/<svg\b[^>]*>/, (tag) =>
+    tag
+      .replace(/\s(?:width|height)=(?:"[^"]*"|'[^']*')/g, "")
+      .replace("<svg", `<svg width="${size}" height="${size}"`),
+  );
+}
+
 async function loadSprite(code: string, size: number): Promise<HTMLCanvasElement> {
   const url = PIECE_URLS[`../pieces/cburnett/${code}.svg`];
   if (!url) throw new Error(`No artwork for ${code}`);
-  // Some browsers won't draw an SVG with no size of its own, so it's given one.
-  const text = (await (await fetch(url)).text()).replace("<svg ", `<svg width="${size}" height="${size}" `);
+  const text = sizedSvg(await (await fetch(url)).text(), size);
   const objectUrl = URL.createObjectURL(new Blob([text], { type: "image/svg+xml" }));
   try {
     const image = new Image();
@@ -171,6 +183,54 @@ function fit(context: CanvasRenderingContext2D, text: string, width: number): st
   let cut = text;
   while (cut.length > 1 && context.measureText(`${cut}…`).width > width) cut = cut.slice(0, -1);
   return `${cut.trimEnd()}…`;
+}
+
+function drawArrow(
+  context: CanvasRenderingContext2D,
+  from: Square,
+  to: Square,
+  orientation: Color,
+) {
+  const f = squareAt(from, orientation);
+  const t = squareAt(to, orientation);
+  const fx = f.x + SQUARE / 2;
+  const fy = f.y + SQUARE / 2;
+  const tx = t.x + SQUARE / 2;
+  const ty = t.y + SQUARE / 2;
+
+  const angle = Math.atan2(ty - fy, tx - fx);
+  const headLen = SQUARE * 0.4;
+  const headHalf = SQUARE * 0.18;
+  const shaft = SQUARE * 0.1;
+
+  const tipX = tx - Math.cos(angle) * SQUARE * 0.15;
+  const tipY = ty - Math.sin(angle) * SQUARE * 0.15;
+  const baseX = tipX - Math.cos(angle) * headLen;
+  const baseY = tipY - Math.sin(angle) * headLen;
+  const perpX = -Math.sin(angle);
+  const perpY = Math.cos(angle);
+
+  context.save();
+  context.globalAlpha = 0.85;
+  context.fillStyle = "#f0a030";
+  context.strokeStyle = "#f0a030";
+  context.lineWidth = shaft * 2;
+  context.lineCap = "round";
+  context.lineJoin = "round";
+
+  context.beginPath();
+  context.moveTo(fx, fy);
+  context.lineTo(baseX, baseY);
+  context.stroke();
+
+  context.beginPath();
+  context.moveTo(tipX, tipY);
+  context.lineTo(baseX + perpX * headHalf, baseY + perpY * headHalf);
+  context.lineTo(baseX - perpX * headHalf, baseY - perpY * headHalf);
+  context.closePath();
+  context.fill();
+
+  context.restore();
 }
 
 async function drawFrame(
@@ -241,6 +301,8 @@ async function drawFrame(
     const { x, y } = squareAt(piece.square, orientation);
     context.drawImage(images[i]!, x, y, SQUARE, SQUARE);
   });
+
+  drawArrow(context, frame.from, frame.to, orientation);
 
   if (frame.quality) {
     const badge = BADGE[frame.quality];

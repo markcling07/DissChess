@@ -212,7 +212,7 @@ export function InputScreen({
               Paste image
             </button>
           </div>
-          <p className="dropzone__hint">Or drop an image here, or press Ctrl+V. JPG, PNG or WEBP, up to 15 MB.</p>
+          <p className="dropzone__hint">Ctrl+V</p>
         </div>
       )}
 

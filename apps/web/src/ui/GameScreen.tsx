@@ -219,6 +219,13 @@ export function GameScreen({
     // Plies is rebuilt each render, and the moves only differ when the version does.
   }, [review, version]);
 
+  const brilliantArrows = useMemo(() => {
+    if (!review || !analysing) return [];
+    return review.moves
+      .filter((m) => m.quality === "brilliant" && plies[m.ply]?.san === m.san)
+      .map((m) => ({ from: plies[m.ply]!.from, to: plies[m.ply]!.to, brush: "yellow" }));
+  }, [review, analysing, version]);
+
   function handleMove(from: Square, to: Square) {
     if (game.isPromotion(from, to)) {
       setPendingPromotion({ from, to });
@@ -265,6 +272,7 @@ export function GameScreen({
                 to: a.to,
                 brush: a.rank === 1 ? "paleGreen" : "green",
               })),
+              ...brilliantArrows,
             ]}
           />
           {pendingPromotion && (

@@ -1075,11 +1075,12 @@ button.corners__unsure[aria-pressed="true"] {
 }
 
 .sheet__mark--good {
-  color: #13798a;
+  color: #e6a829;
+  font-weight: 700;
 }
 
 .reviewed__move--good {
-  color: #5fd0de;
+  color: #e6a829;
 }
 
 /* Saving moves as pictures. */

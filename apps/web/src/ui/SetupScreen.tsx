@@ -174,7 +174,7 @@ export function SetupScreen({
           <>
             <p className="hint">
               {canStartNow
-                ? "Does this match your image? Choose who plays next to start the game."
+                ? "Who's turn?"
                 : unresolved > 0
                   ? "Some squares need checking first. They're marked on the board and listed with the reading."
                   : "This position has a problem to fix first. It's listed with the settings."}
@@ -184,11 +184,12 @@ export function SetupScreen({
                 <button
                   key={color}
                   type="button"
-                  className="primary"
+                  className="start-choice__king"
                   disabled={startingAs(color) === null}
                   onClick={() => startAs(color)}
+                  aria-label={`${SIDE_NAME[color]} to play`}
                 >
-                  {SIDE_NAME[color]} to play
+                  <PieceImage piece={color === "w" ? "K" : "k"} />
                 </button>
               ))}
             </div>

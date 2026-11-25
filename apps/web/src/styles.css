@@ -304,10 +304,36 @@ button.armed:hover:not(:disabled) {
 }
 
 .start-choice {
-  display: grid;
-  grid-auto-flow: column;
-  grid-auto-columns: 1fr;
-  gap: 8px;
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+}
+
+.start-choice__king {
+  all: unset;
+  cursor: pointer;
+  width: 64px;
+  height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: transform 150ms ease, opacity 150ms ease;
+}
+
+.start-choice__king:hover {
+  transform: scale(1.15);
+}
+
+.start-choice__king:disabled {
+  opacity: 0.3;
+  cursor: default;
+  transform: none;
+}
+
+.start-choice__king .piece-image {
+  width: 64px;
+  height: 64px;
 }
 
 @media (max-width: 899px) {

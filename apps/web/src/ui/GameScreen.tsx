@@ -171,6 +171,7 @@ export function GameScreen({
   const [bestMove, setBestMove] = useState<{ from: Square; to: Square } | null>(null);
   const showBestMove = useCallback((move: { from: Square; to: Square } | null) => setBestMove(move), []);
   const [predicting, setPredicting] = useState(false);
+  const [redoStack, setRedoStack] = useState<{ from: Square; to: Square; promotion?: PromotionPiece }[]>([]);
 
   const status = game.status();
   const firstMoveNumber = useMemo(() => new Chess(game.startFen).moveNumber(), [game]);
@@ -227,6 +228,7 @@ export function GameScreen({
   }, [review, analysing, version]);
 
   function handleMove(from: Square, to: Square) {
+    setRedoStack([]);
     if (game.isPromotion(from, to)) {
       setPendingPromotion({ from, to });
       return;
@@ -238,6 +240,34 @@ export function GameScreen({
   function choosePromotion(piece: PromotionPiece) {
     if (pendingPromotion) game.move(pendingPromotion.from, pendingPromotion.to, piece);
     setPendingPromotion(null);
+  }
+
+  function handleUndo() {
+    const currentPlies = game.plies();
+    const toSave: typeof redoStack = [];
+    for (let i = 0; i < undoPlies; i += 1) {
+      const ply = currentPlies[currentPlies.length - 1 - i];
+      if (ply) {
+        const promotion = ply.san.match(/=([QRBN])/i)?.[1]?.toLowerCase() as PromotionPiece | undefined;
+        toSave.unshift({ from: ply.from, to: ply.to, promotion });
+      }
+      game.undo();
+    }
+    setRedoStack([...redoStack, ...toSave]);
+    setPendingPromotion(null);
+    refresh();
+  }
+
+  function handleRedo() {
+    const count = Math.min(undoPlies, redoStack.length);
+    if (count === 0) return;
+    for (let i = count; i > 0; i -= 1) {
+      const move = redoStack[redoStack.length - i]!;
+      game.move(move.from, move.to, move.promotion);
+    }
+    setRedoStack(redoStack.slice(0, -count));
+    setPendingPromotion(null);
+    refresh();
   }
 
   async function copyFen() {
@@ -295,16 +325,11 @@ export function GameScreen({
         )}
 
         <div className="actions">
-          <button
-            type="button"
-            disabled={game.moveCount < undoPlies}
-            onClick={() => {
-              for (let i = 0; i < undoPlies; i += 1) game.undo();
-              setPendingPromotion(null);
-              refresh();
-            }}
-          >
-            Undo
+          <button type="button" disabled={game.moveCount < undoPlies} onClick={handleUndo}>
+            &lt;
+          </button>
+          <button type="button" disabled={redoStack.length === 0} onClick={handleRedo}>
+            &gt;
           </button>
           <ConfirmButton
             label="Restart"
@@ -314,12 +339,10 @@ export function GameScreen({
               game.restart();
               setPendingPromotion(null);
               setReview(null);
+              setRedoStack([]);
               refresh();
             }}
           />
-          <button type="button" onClick={() => setOrientation(orientation === "w" ? "b" : "w")}>
-            Flip board
-          </button>
           <ConfirmButton
             label="Edit position"
             confirmLabel="Tap again to discard moves"

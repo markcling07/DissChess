@@ -17,7 +17,7 @@ import { normaliseSetup, resolveSetup } from "../setup/setupState";
 import { Board } from "./Board";
 import { IssueList } from "./IssueList";
 import { PIECE_INFO, PieceImage } from "./pieces";
-import { ReviewPanel } from "./ReviewPanel";
+
 
 type Tool = PieceCode | "erase" | null;
 
@@ -263,7 +263,6 @@ export function SetupScreen({
 
       <section className="layout__side panel">
         <h1>{review ? "Check the position" : "Set up the position"}</h1>
-        {review && <ReviewPanel review={review} dispatch={dispatch} />}
 
         {locked ? (
           <div>
@@ -308,102 +307,106 @@ export function SetupScreen({
           </fieldset>
         )}
 
-        <details className="more">
-          <summary>En passant and move numbers</summary>
+        {!locked && (
+          <>
+            <details className="more">
+              <summary>En passant and move numbers</summary>
 
-          <label className="field">
-            <span>En passant capture on</span>
-            <select
-              value={setup.enPassant ?? ""}
-              disabled={!epOptions.length}
-              onChange={(event) =>
-                dispatch({ type: "setEnPassant", square: (event.target.value || null) as Square | null })
-              }
-            >
-              <option value="">None</option>
-              {epOptions.map((square) => (
-                <option key={square} value={square}>
-                  {square}
-                </option>
-              ))}
-            </select>
-          </label>
-          <p className="hint">Only if the last move was a pawn moving two squares next to an enemy pawn.</p>
+              <label className="field">
+                <span>En passant capture on</span>
+                <select
+                  value={setup.enPassant ?? ""}
+                  disabled={!epOptions.length}
+                  onChange={(event) =>
+                    dispatch({ type: "setEnPassant", square: (event.target.value || null) as Square | null })
+                  }
+                >
+                  <option value="">None</option>
+                  {epOptions.map((square) => (
+                    <option key={square} value={square}>
+                      {square}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <p className="hint">Only if the last move was a pawn moving two squares next to an enemy pawn.</p>
 
-          <div className="field-row">
-            <label className="field">
-              <span>Moves since a capture or pawn move</span>
-              <input
-                type="number"
-                min={0}
-                inputMode="numeric"
-                value={Number.isNaN(setup.halfmove) ? "" : setup.halfmove}
-                onChange={(event) => dispatch({ type: "setHalfmove", value: parseCounter(event.target.value) })}
-              />
-            </label>
-            <label className="field">
-              <span>Move number</span>
-              <input
-                type="number"
-                min={1}
-                inputMode="numeric"
-                value={Number.isNaN(setup.fullmove) ? "" : setup.fullmove}
-                onChange={(event) => dispatch({ type: "setFullmove", value: parseCounter(event.target.value) })}
-              />
-            </label>
-          </div>
-          <p className="hint">If you don't know these, leave them. They only affect the fifty-move draw and how moves are numbered.</p>
-        </details>
+              <div className="field-row">
+                <label className="field">
+                  <span>Moves since a capture or pawn move</span>
+                  <input
+                    type="number"
+                    min={0}
+                    inputMode="numeric"
+                    value={Number.isNaN(setup.halfmove) ? "" : setup.halfmove}
+                    onChange={(event) => dispatch({ type: "setHalfmove", value: parseCounter(event.target.value) })}
+                  />
+                </label>
+                <label className="field">
+                  <span>Move number</span>
+                  <input
+                    type="number"
+                    min={1}
+                    inputMode="numeric"
+                    value={Number.isNaN(setup.fullmove) ? "" : setup.fullmove}
+                    onChange={(event) => dispatch({ type: "setFullmove", value: parseCounter(event.target.value) })}
+                  />
+                </label>
+              </div>
+              <p className="hint">If you don't know these, leave them. They only affect the fifty-move draw and how moves are numbered.</p>
+            </details>
 
-        <details className="more">
-          <summary>Load a FEN</summary>
-          <label className="field">
-            <span>FEN</span>
-            <input
-              type="text"
-              spellCheck={false}
-              autoCapitalize="off"
-              autoCorrect="off"
-              value={fenDraft}
-              onChange={(event) => setFenDraft(event.target.value)}
-            />
-          </label>
-          <button type="button" onClick={loadFen}>
-            Load FEN
-          </button>
-          {fenMessage && (
-            <p className={fenMessage.isError ? "hint hint--error" : "hint"} role="status">
-              {fenMessage.text}
-            </p>
-          )}
-        </details>
+            <details className="more">
+              <summary>Load a FEN</summary>
+              <label className="field">
+                <span>FEN</span>
+                <input
+                  type="text"
+                  spellCheck={false}
+                  autoCapitalize="off"
+                  autoCorrect="off"
+                  value={fenDraft}
+                  onChange={(event) => setFenDraft(event.target.value)}
+                />
+              </label>
+              <button type="button" onClick={loadFen}>
+                Load FEN
+              </button>
+              {fenMessage && (
+                <p className={fenMessage.isError ? "hint hint--error" : "hint"} role="status">
+                  {fenMessage.text}
+                </p>
+              )}
+            </details>
 
-        <details className="more">
-          <summary>Paste moves</summary>
-          <p className="hint">
-            Type or paste the moves played so far, like 1. e4 e5 2. Nf3. A PGN or a list copied from a game page works
-            too. The game opens at the last move, ready to play on.
-          </p>
-          <label className="field">
-            <span>Moves</span>
-            <textarea
-              rows={4}
-              spellCheck={false}
-              autoCapitalize="off"
-              autoCorrect="off"
-              value={movesDraft}
-              onChange={(event) => setMovesDraft(event.target.value)}
-            />
-          </label>
-          <button type="button" onClick={loadMoves}>
-            Load moves
-          </button>
-          {movesError && (
-            <p className="hint hint--error" role="status">
-              {movesError}
-            </p>
-          )}
-        </details>
+            <details className="more">
+              <summary>Paste moves</summary>
+              <p className="hint">
+                Type or paste the moves played so far, like 1. e4 e5 2. Nf3. A PGN or a list copied from a game page works
+                too. The game opens at the last move, ready to play on.
+              </p>
+              <label className="field">
+                <span>Moves</span>
+                <textarea
+                  rows={4}
+                  spellCheck={false}
+                  autoCapitalize="off"
+                  autoCorrect="off"
+                  value={movesDraft}
+                  onChange={(event) => setMovesDraft(event.target.value)}
+                />
+              </label>
+              <button type="button" onClick={loadMoves}>
+                Load moves
+              </button>
+              {movesError && (
+                <p className="hint hint--error" role="status">
+                  {movesError}
+                </p>
+              )}
+            </details>
+          </>
+        )}
 
         <IssueList issues={issues.filter(({ code }) => !UNSTATED_ISSUES.has(code))} />
         {unresolved > 0 && (

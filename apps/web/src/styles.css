@@ -549,36 +549,30 @@ legend {
 
 /* The scoresheet */
 .sheet {
-  --row: 2.1rem;
-  color: var(--ink);
-  background: var(--canary);
-  border-radius: 2px;
-  box-shadow: 0 2px 0 var(--canary-rule), 0 10px 24px rgba(0, 0, 0, 0.35);
-}
-
-@media (min-width: 900px) {
-  .sheet {
-    transform: rotate(-0.6deg);
-  }
+  --row: 1.9rem;
+  color: var(--buff);
+  background: var(--vinyl-deep);
+  border-radius: 6px;
 }
 
 .sheet__head,
 .sheet__row {
   display: grid;
-  grid-template-columns: 2.75rem 1fr 1fr;
+  grid-template-columns: 2.5rem 1fr 1fr;
 }
 
 .sheet__head {
   height: var(--row);
   align-items: center;
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: var(--vinyl-deep);
-  border-bottom: 2px solid var(--vinyl-deep);
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--buff-soft);
+  letter-spacing: 0.03em;
+  border-bottom: 1px solid var(--vinyl-line);
 }
 
 .sheet__head span {
-  padding-inline: 10px;
+  padding-inline: 8px;
 }
 
 .sheet__body {
@@ -601,23 +595,25 @@ legend {
 .sheet__row {
   height: var(--row);
   align-items: center;
-  border-bottom: 1px solid var(--canary-rule);
+}
+
+.sheet__row:nth-child(odd) {
+  background: rgba(255, 255, 255, 0.03);
 }
 
 .sheet__number {
   height: 100%;
   display: grid;
   place-items: center;
-  font-size: 0.875rem;
+  font-size: 0.8rem;
   font-variant-numeric: tabular-nums;
-  color: var(--vinyl-deep);
-  border-right: 1px solid var(--canary-rule);
+  color: var(--buff-soft);
+  opacity: 0.6;
 }
 
 .sheet__move {
-  padding-inline: 10px;
-  font-family: var(--font-hand);
-  font-size: 1.3rem;
+  padding-inline: 8px;
+  font-size: 0.95rem;
   line-height: 1;
 }
 
@@ -625,13 +621,12 @@ legend {
   height: 100%;
   display: flex;
   align-items: center;
-  border-left: 1px solid var(--canary-rule);
 }
 
 .sheet__result {
-  padding: 6px 10px;
-  font-family: var(--font-hand);
-  font-size: 1.3rem;
+  padding: 6px 8px;
+  font-size: 0.95rem;
+  color: var(--buff-soft);
 }
 
 @media (prefers-reduced-motion: reduce) {

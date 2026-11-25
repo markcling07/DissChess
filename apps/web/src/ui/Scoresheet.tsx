@@ -1,8 +1,7 @@
 import { useEffect, useRef } from "react";
 import type { ScoresheetRow } from "../chess/game";
 
-/** Empty rows keep it looking like a sheet of paper before any moves are written. */
-const MINIMUM_ROWS = 12;
+const MINIMUM_ROWS = 0;
 
 export function Scoresheet({
   rows,

@@ -1079,8 +1079,20 @@ button.corners__unsure[aria-pressed="true"] {
   font-weight: 700;
 }
 
-.reviewed__move--good {
+.reviewed__move--brilliant {
+  color: #26c9c3;
+}
+
+.reviewed__move--inaccuracy {
   color: #e6a829;
+}
+
+.reviewed__move--mistake {
+  color: #e07a30;
+}
+
+.reviewed__move--blunder {
+  color: #d94040;
 }
 
 /* Saving moves as pictures. */

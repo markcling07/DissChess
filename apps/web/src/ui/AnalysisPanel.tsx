@@ -193,7 +193,7 @@ function MoveReviewSection({
             <ul className="reviewed">
               {brilliant.map((move) => (
                 <li key={move.ply}>
-                  <span className="reviewed__move reviewed__move--good">
+                  <span className="reviewed__move reviewed__move--brilliant">
                     {move.san}
                     {QUALITY_MARK.brilliant}
                   </span>{" "}
@@ -211,7 +211,7 @@ function MoveReviewSection({
             <ul className="reviewed">
               {flagged.map((move) => (
                 <li key={move.ply}>
-                  <span className="reviewed__move">
+                  <span className={`reviewed__move reviewed__move--${move.quality}`}>
                     {move.san}
                     {QUALITY_MARK[move.quality!]}
                   </span>{" "}

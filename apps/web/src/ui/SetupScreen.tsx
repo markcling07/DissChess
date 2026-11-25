@@ -201,7 +201,7 @@ export function SetupScreen({
                 key={piece}
                 active={tool === piece}
                 label={`Place ${PIECE_INFO[piece].name.toLowerCase()}`}
-                onClick={() => setTool(piece)}
+                onClick={() => setTool(piece.toLowerCase() === "p" ? piece : null)}
                 onPointerDown={(event) => {
                   if (event.button === 0) dragNewPiece.current?.(piece, event.nativeEvent);
                 }}
@@ -217,7 +217,7 @@ export function SetupScreen({
                 key={piece}
                 active={tool === piece}
                 label={`Place ${PIECE_INFO[piece].name.toLowerCase()}`}
-                onClick={() => setTool(piece)}
+                onClick={() => setTool(piece.toLowerCase() === "p" ? piece : null)}
                 onPointerDown={(event) => {
                   if (event.button === 0) dragNewPiece.current?.(piece, event.nativeEvent);
                 }}

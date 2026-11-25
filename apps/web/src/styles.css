@@ -1060,6 +1060,18 @@ button.corners__unsure[aria-pressed="true"] {
   border-left: 3px solid var(--canary);
 }
 
+.insight-link {
+  all: unset;
+  cursor: pointer;
+  text-decoration: underline;
+  text-decoration-color: transparent;
+  transition: text-decoration-color 150ms ease;
+}
+
+.insight-link:hover {
+  text-decoration-color: currentColor;
+}
+
 .reviewed__move {
   font-weight: 600;
 }

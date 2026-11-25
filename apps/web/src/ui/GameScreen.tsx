@@ -1,5 +1,5 @@
 import { Chess, type Color, type Square } from "chess.js";
-import { useCallback, useEffect, useMemo, useReducer, useState } from "react";
+import { useCallback, useEffect, useMemo, useReducer, useRef, useState } from "react";
 import { GameSession, type GameStatus, type PromotionPiece } from "../chess/game";
 import { QUALITY_MARK } from "../engine/evaluation";
 import type { GameReview } from "../engine/review";
@@ -170,9 +170,15 @@ export function GameScreen({
   const [savingPictures, setSavingPictures] = useState(false);
   const [bestMove, setBestMove] = useState<{ from: Square; to: Square } | null>(null);
   const showBestMove = useCallback((move: { from: Square; to: Square } | null) => setBestMove(move), []);
+  const [highlightedMove, setHighlightedMove] = useState<{ from: Square; to: Square } | null>(null);
+  const highlightTimeout = useRef<number | null>(null);
+  const handleInsightClick = useCallback((move: { from: Square; to: Square }) => {
+    if (highlightTimeout.current) window.clearTimeout(highlightTimeout.current);
+    setHighlightedMove(move);
+    highlightTimeout.current = window.setTimeout(() => setHighlightedMove(null), 3000);
+  }, []);
   const [predicting, setPredicting] = useState(false);
   const [redoStack, setRedoStack] = useState<{ from: Square; to: Square; promotion?: PromotionPiece }[]>([]);
-
   const status = game.status();
   const firstMoveNumber = useMemo(() => new Chess(game.startFen).moveNumber(), [game]);
   const fen = game.fen;
@@ -297,6 +303,7 @@ export function GameScreen({
             }}
             arrows={[
               ...(analysing && bestMove ? [bestMove] : []),
+              ...(highlightedMove ? [{ ...highlightedMove, brush: "yellow" }] : []),
               ...prediction.arrows.map((a) => ({
                 from: a.from,
                 to: a.to,
@@ -405,6 +412,7 @@ export function GameScreen({
             review={review}
             onReview={setReview}
             onBestMove={showBestMove}
+            onInsightClick={handleInsightClick}
           />
         )}
         <Scoresheet

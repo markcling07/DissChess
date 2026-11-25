@@ -86,6 +86,8 @@ export function passedFen(fen: string): string {
 export interface Insight {
   readonly kind: "mate" | "being_mated" | "only_move" | "wins_material";
   readonly text: string;
+  readonly from: string;
+  readonly to: string;
 }
 
 /**
@@ -101,17 +103,19 @@ export function findInsights(fen: string, lines: readonly EngineLine[]): Insight
   const san = lineToSan(fen, best.pv, 1)[0];
   if (!san) return [];
 
+  const bestMove = parseUciMove(best.pv[0]!);
   const forSide = best.score.value * (side === "w" ? 1 : -1);
   const insights: Insight[] = [];
 
   if (best.score.kind === "mate" && forSide > 0) {
-    insights.push({ kind: "mate", text: `${name} has checkmate in ${forSide}, starting with ${san}.` });
+    insights.push({ kind: "mate", text: `${name} has checkmate in ${forSide}, starting with ${san}.`, from: bestMove.from, to: bestMove.to });
     return insights;
   }
   if (best.score.kind === "mate" && forSide < 0) {
     insights.push({
       kind: "being_mated",
       text: `${name} can't avoid checkmate in ${-forSide}. ${san} holds out longest.`,
+      from: bestMove.from, to: bestMove.to,
     });
     return insights;
   }
@@ -121,7 +125,7 @@ export function findInsights(fen: string, lines: readonly EngineLine[]): Insight
     const direction = side === "w" ? 1 : -1;
     const gap = direction * (winPercent(best.score) - winPercent(second.score));
     if (gap >= 15) {
-      insights.push({ kind: "only_move", text: `${san} is much stronger than any other move here.` });
+      insights.push({ kind: "only_move", text: `${san} is much stronger than any other move here.`, from: bestMove.from, to: bestMove.to });
     }
   }
 
@@ -143,6 +147,7 @@ export function findInsights(fen: string, lines: readonly EngineLine[]): Insight
     insights.push({
       kind: "wins_material",
       text: `${san} looks set to win material, about ${gain} points.`,
+      from: bestMove.from, to: bestMove.to,
     });
   }
   return insights;

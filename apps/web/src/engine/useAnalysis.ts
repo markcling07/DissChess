@@ -13,6 +13,8 @@ const THREAT_GAIN = 15;
 
 export interface Threat {
   readonly text: string;
+  readonly from: string;
+  readonly to: string;
 }
 
 export interface AnalysisState {
@@ -33,16 +35,16 @@ function describeThreat(fen: string, line: EngineLine | undefined, current: Engi
   const san = lineToSan(passed, line.pv, 1)[0];
   if (!san) return null;
 
+  const threatMove = parseUciMove(line.pv[0]!);
   const direction = opponent === "White" ? 1 : -1;
   if (line.score.kind === "mate" && line.score.value * direction > 0) {
-    return { text: `${opponent} threatens checkmate in ${Math.abs(line.score.value)}, starting with ${san}.` };
+    return { text: `${opponent} threatens checkmate in ${Math.abs(line.score.value)}, starting with ${san}.`, from: threatMove.from, to: threatMove.to };
   }
   if (!current) return null;
   const gain = direction * (winPercent(line.score) - winPercent(current.score));
-  const move = parseUciMove(line.pv[0]!);
   const opponentBoard = new Chess(passed);
-  const isCapture = Boolean(opponentBoard.get(move.to as never));
-  if (gain >= THREAT_GAIN && isCapture) return { text: `${opponent} threatens ${san}.` };
+  const isCapture = Boolean(opponentBoard.get(threatMove.to as never));
+  if (gain >= THREAT_GAIN && isCapture) return { text: `${opponent} threatens ${san}.`, from: threatMove.from, to: threatMove.to };
   return null;
 }
 

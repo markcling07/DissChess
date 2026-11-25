@@ -26,6 +26,7 @@ export function AnalysisPanel({
   review,
   onReview,
   onBestMove,
+  onInsightClick,
 }: {
   fen: string;
   /** While the computer opponent is thinking, the one engine is busy with that. */
@@ -34,6 +35,7 @@ export function AnalysisPanel({
   review: GameReview | null;
   onReview: (review: GameReview | null) => void;
   onBestMove: (move: { from: Square; to: Square } | null) => void;
+  onInsightClick?: (move: { from: Square; to: Square }) => void;
 }) {
   const engine = useMemo(() => getEngine(), []);
   const analysis = useAnalysis(engine, fen, !paused);
@@ -105,9 +107,19 @@ export function AnalysisPanel({
               <h2 className="analysis__heading">Worth noticing</h2>
               <ul className="insights">
                 {insights.map((insight) => (
-                  <li key={insight.kind}>{insight.text}</li>
+                  <li key={insight.kind}>
+                    <button type="button" className="insight-link" onClick={() => onInsightClick?.({ from: insight.from as Square, to: insight.to as Square })}>
+                      {insight.text}
+                    </button>
+                  </li>
                 ))}
-                {analysis.threat && <li>{analysis.threat.text}</li>}
+                {analysis.threat && (
+                  <li>
+                    <button type="button" className="insight-link" onClick={() => onInsightClick?.({ from: analysis.threat!.from as Square, to: analysis.threat!.to as Square })}>
+                      {analysis.threat.text}
+                    </button>
+                  </li>
+                )}
               </ul>
               <p className="hint">Simple checks on the engine's lines, so they won't catch everything.</p>
             </div>

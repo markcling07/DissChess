@@ -11,7 +11,7 @@ import {
 } from "../chess/position";
 import { positionFromMoves } from "../chess/moves";
 import { forcedSideToMove, hasBlockingIssue, validatePosition } from "../chess/validate";
-import { unresolvedCount, type ReviewState } from "../recognition/review";
+import type { ReviewState } from "../recognition/review";
 import type { SessionAction } from "../setup/sessionState";
 import { normaliseSetup, resolveSetup } from "../setup/setupState";
 import { Board } from "./Board";
@@ -80,8 +80,7 @@ export function SetupScreen({
   const resolved = useMemo(() => resolveSetup(setup), [setup]);
   const issues = useMemo(() => validatePosition(resolved), [resolved]);
   const forcedSide = useMemo(() => forcedSideToMove(setup.placement), [setup.placement]);
-  const unresolved = unresolvedCount(review);
-  const blocked = hasBlockingIssue(issues) || unresolved > 0;
+  const blocked = hasBlockingIssue(issues);
   const side = resolved.sideToMove;
   const epOptions = side ? enPassantOptions(setup.placement, side) : [];
 
@@ -99,7 +98,7 @@ export function SetupScreen({
   /** The position with this side to move, or null while something stops the game starting. */
   function startingAs(color: Color): PositionSetup | null {
     const chosen = resolveSetup({ ...setup, sideToMove: color });
-    return unresolved === 0 && !hasBlockingIssue(validatePosition(chosen)) ? chosen : null;
+    return !hasBlockingIssue(validatePosition(chosen)) ? chosen : null;
   }
 
   function startAs(color: Color) {
@@ -174,9 +173,7 @@ export function SetupScreen({
           <>
             {!canStartNow && (
               <p className="hint">
-                {unresolved > 0
-                  ? "Some squares need checking first. They're marked on the board and listed with the reading."
-                  : "This position has a problem to fix first. It's listed with the settings."}
+                This position has a problem to fix first. It's listed with the settings.
               </p>
             )}
             <div className="actions">
@@ -409,12 +406,6 @@ export function SetupScreen({
         )}
 
         <IssueList issues={issues.filter(({ code }) => !UNSTATED_ISSUES.has(code))} />
-        {unresolved > 0 && (
-          <p className="issue issue--blocking">
-            {unresolved === 1 ? "1 thing still needs" : `${unresolved} things still need`} checking above. Fix or
-            confirm {unresolved === 1 ? "it" : "them"} to start.
-          </p>
-        )}
 
         {!blocked && side && <p className="fen">{toFen(resolved)}</p>}
 
